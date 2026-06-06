@@ -1,0 +1,111 @@
+{
+    "name": "laravel/laravel",
+    "type": "project",
+    "description": "The Laravel Framework.",
+    "keywords": ["framework", "laravel"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "ext-openssl": "*",
+        "ext-gd": "*",
+        "barryvdh/laravel-debugbar": "^3.11",
+        "barryvdh/laravel-dompdf": "^3.0",
+        "brian2694/laravel-toastr": "^5.56",
+        "devrabiul/laravel-paystack": "^1.0",
+        "carlos-meneses/laravel-mpdf": "^2.1",
+        "doctrine/dbal": "^4.0",
+        "gregwar/captcha": "^1.1",
+        "guzzlehttp/guzzle": "^7.9",
+        "intervention/image": "^3.7",
+        "iyzico/iyzipay-php": "^2.0",
+        "jenssegers/agent": "^2.6",
+        "kreait/firebase-php": "^7.15",
+        "kreait/laravel-firebase": "^6.0",
+        "laravel/framework": "^12.0",
+        "laravel/passport": "^12.0",
+        "laravel/tinker": "^2.9",
+        "laravel/vonage-notification-channel": "^3.0",
+        "lcobucci/jwt": "^5.2",
+        "maatwebsite/excel": "^3.1",
+        "madnest/madzipper": "^1.1",
+        "mercadopago/dx-php": "2.4.4",
+        "nwidart/laravel-modules": "dev-laravel-12 as 12.0.0",
+        "openai-php/laravel": "^0.17.1",
+        "paypal/rest-api-sdk-php": "^1.6",
+        "rap2hpoutre/fast-excel": "^5.4",
+        "razorpay/razorpay": "^2.9",
+        "stripe/stripe-php": "^13.0",
+        "twilio/sdk": "^8.0",
+        "xendit/xendit-php": "^3.0"
+    },
+    "require-dev": {
+        "spatie/laravel-ignition": "^2.9",
+        "fakerphp/faker": "^1.23",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.0",
+        "phpunit/phpunit": "^11.0"
+    },
+
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "audit": {
+            "ignore": [
+                "PKSA-y2cr-5h3j-g3ys"
+            ]
+        },
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "php-http/discovery": true,
+            "wikimedia/composer-merge-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "autoload": {
+        "files": [
+            "app/CentralLogics/CategoryLogic.php",
+            "app/CentralLogics/ProductLogic.php",
+            "app/CentralLogics/Helpers.php",
+            "app/CentralLogics/OrderLogic.php",
+            "app/CentralLogics/SMSModule.php",
+            "app/CentralLogics/translation.php",
+            "app/CentralLogics/CustomerLogic.php",
+            "app/Library/Responses.php",
+            "app/CentralLogics/AddFundHook.php",
+            "app/CentralLogics/GlobalHelper.php",
+            "app/Library/Constant.php"
+        ],
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/",
+            "Modules\\": "Modules/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ]
+    }
+}
