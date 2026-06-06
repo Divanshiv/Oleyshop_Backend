@@ -4,6 +4,8 @@ namespace App;
 
 use App\Model\CustomerAddress;
 use App\Model\FavoriteProduct;
+use App\Model\MatrixIncentiveLog;
+use App\Model\MatrixMember;
 use App\Model\Order;
 use App\Model\SearchedKeywordUser;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -22,7 +24,9 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name','f_name', 'l_name', 'phone', 'email', 'password', 'loyalty_point', 'wallet_balance', 'referral_code', 'referred_by'
+        'name','f_name', 'l_name', 'phone', 'email', 'password', 'loyalty_point', 'wallet_balance', 'referral_code', 'referred_by',
+        'matrix_level', 'matrix_position', 'total_team_members',
+        'total_point_value', 'is_member',
     ];
 
     /**
@@ -42,6 +46,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'is_phone_verified' => 'integer',
+        'is_member' => 'boolean',
         'loyalty_point' => 'float',
         'wallet_balance' => 'float',
     ];
@@ -87,5 +92,20 @@ class User extends Authenticatable
     public function search_volume()
     {
         return $this->hasMany(SearchedKeywordUser::class, 'user_id', 'id');
+    }
+
+    public function matrixMember()
+    {
+        return $this->hasOne(MatrixMember::class, 'user_id');
+    }
+
+    public function matrixChildren()
+    {
+        return $this->hasMany(MatrixMember::class, 'parent_id', 'id');
+    }
+
+    public function matrixIncentiveLogs()
+    {
+        return $this->hasMany(MatrixIncentiveLog::class, 'user_id');
     }
 }

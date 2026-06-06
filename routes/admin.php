@@ -26,6 +26,8 @@ use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\LocationSettingsController;
 use App\Http\Controllers\Admin\LoyaltyPointController;
+use App\Http\Controllers\Admin\MatrixManagementController;
+use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OfferController;
 use App\Http\Controllers\Admin\OrderController;
@@ -477,6 +479,17 @@ Route::group(['as' => 'admin.'], function () {
             });
 
             Route::get('loyalty-point/report', [LoyaltyPointController::class, 'report'])->name('loyalty-point.report');
+
+            Route::group(['prefix' => 'members', 'as' => 'members.'], function () {
+                Route::get('/', [MemberController::class, 'list'])->name('list');
+                Route::post('toggle-status/{id}', [MemberController::class, 'toggleMemberStatus'])->name('toggle-status');
+                Route::post('update-milestone', [MemberController::class, 'updateMilestone'])->name('update-milestone');
+            });
+
+            Route::group(['prefix' => 'matrix', 'as' => 'matrix.'], function () {
+                Route::get('/', [MatrixManagementController::class, 'index'])->name('index');
+                Route::get('tree/{id}', [MatrixManagementController::class, 'tree'])->name('tree');
+            });
         });
 
         Route::group(['prefix' => 'offer', 'as' => 'offer.'], function () {

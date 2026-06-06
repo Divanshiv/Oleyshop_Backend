@@ -52,7 +52,7 @@ trait HelperTrait
         }
 
         $selectedMaintenanceDuration = Helpers::get_business_settings('maintenance_duration_setup') ?? [];
-        $maintenanceStatus = (integer)(Helpers::get_business_settings('maintenance_mode') ?? 0);
+        $maintenanceStatus = (int)(Helpers::get_business_settings('maintenance_mode') ?? 0);
 
         $status = 0;
         if ($maintenanceStatus == 1) {

@@ -31,6 +31,8 @@ class StoreOrderRequest extends FormRequest
             'cart.*.product_id' => 'required|numeric|exists:products,id',
             'cart.*.quantity' => 'required|numeric|min:1',
             'cart.*.variant' => 'nullable|string',
+            'cart.*.point_value' => 'nullable|numeric|min:0',
+            'point_value' => 'nullable|numeric|min:0',
             'coupon_code' => 'nullable|string|exists:coupons,code',
             'payment_method' => 'required|string',
             'customer_id' => 'nullable|required_unless:is_guest,1|exists:users,id',
@@ -68,6 +70,7 @@ class StoreOrderRequest extends FormRequest
 
     public function withValidator($validator) {
         $validator->after(function ($validator)  {
+            $totalPointValue = 0;
             foreach ($this->input('cart', []) as $c) {
                 $product = Product::find($c['product_id']);
                 if (!$product) {
@@ -89,7 +92,17 @@ class StoreOrderRequest extends FormRequest
                         $validator->errors()->add('stock', translate('One or more product stock is insufficient!'));
                     }
                 }
+
+                $itemPointValue = $c['point_value'] ?? $product->point_value ?? 0;
+                $totalPointValue += $itemPointValue * $c['quantity'];
             }
+
+            $submittedPointValue = $this->input('point_value', 0);
+            if ($submittedPointValue > 0 && (int)$submittedPointValue !== (int)$totalPointValue) {
+                $validator->errors()->add('point_value', translate('Point value does not match cart total!'));
+            }
+
+
         });
     }
 

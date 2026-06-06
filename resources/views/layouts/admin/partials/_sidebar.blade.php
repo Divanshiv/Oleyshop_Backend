@@ -552,6 +552,30 @@
                                 </ul>
                             </li>
 
+                            <li class="navbar-vertical-aside-has-menu {{Request::is('admin/customer/members*')?'active':''}}">
+                                <a class="js-navbar-vertical-aside-menu-link nav-link"
+                                   href="{{route('admin.customer.members.list')}}"
+                                   title="{{translate('Members')}}"
+                                >
+                                    <i class="tio-contacts nav-icon"></i>
+                                    <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
+                                        {{translate('Members')}}
+                                    </span>
+                                </a>
+                            </li>
+
+                            <li class="navbar-vertical-aside-has-menu {{Request::is('admin/customer/matrix*')?'active':''}}">
+                                <a class="js-navbar-vertical-aside-menu-link nav-link"
+                                   href="{{route('admin.customer.matrix.index')}}"
+                                   title="{{translate('Matrix')}}"
+                                >
+                                    <i class="tio-node-multiple-outlined nav-icon"></i>
+                                    <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
+                                        {{translate('Matrix')}}
+                                    </span>
+                                </a>
+                            </li>
+
                             <li class="navbar-vertical-aside-has-menu {{Request::is('admin/reviews*')?'active':''}}">
                                 <a class="js-navbar-vertical-aside-menu-link nav-link"
                                    href="{{route('admin.reviews.list')}}"

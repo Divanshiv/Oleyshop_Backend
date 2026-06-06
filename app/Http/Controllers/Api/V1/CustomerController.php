@@ -180,6 +180,22 @@ class CustomerController extends Controller
         return response()->json($customer, 200);
     }
 
+    public function memberStatus(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $nextMilestone = (int) (Helpers::get_business_settings('member_milestone_points') ?: 6500);
+        $progress = min(100, ($user->total_point_value / max($nextMilestone, 1)) * 100);
+
+        return response()->json([
+            'is_member' => (bool)$user->is_member,
+            'total_point_value' => (int)$user->total_point_value,
+            'next_milestone' => $nextMilestone,
+            'progress_percent' => round($progress, 1),
+            'remaining_points' => max(0, $nextMilestone - $user->total_point_value),
+        ], 200);
+    }
+
     /**
      * @param Request $request
      * @return JsonResponse
