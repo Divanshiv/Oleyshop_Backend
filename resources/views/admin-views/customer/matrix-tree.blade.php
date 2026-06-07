@@ -171,7 +171,7 @@
                 <div class="info-label">{{ translate('Position') }}</div>
             </div>
             <div class="info-card">
-                <div class="info-value">{{ $children->count() }} / 4</div>
+                <div class="info-value">{{ is_countable($children) ? count($children) : 0 }} / 4</div>
                 <div class="info-label">{{ translate('Direct Referrals') }}</div>
             </div>
         </div>
