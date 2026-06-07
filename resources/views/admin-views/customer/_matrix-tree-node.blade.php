@@ -4,7 +4,9 @@
 ])
 
 <div class="matrix-node">
-    <div class="matrix-node-card {{ $isRoot ? 'is-root' : '' }}">
+    <a href="{{ route('admin.customer.view', ['user_id' => $node['id']]) }}"
+       class="matrix-node-card {{ $isRoot ? 'is-root' : '' }}"
+       style="text-decoration: none; color: inherit; display: block;">
         <div class="node-name">{{ $node['name'] }}</div>
         <div class="node-meta">{{ $node['phone'] }}</div>
         @if(!empty($node['position']))
@@ -14,8 +16,13 @@
         @endif
         <div class="node-meta" style="margin-top: 2px;">
             {{ translate('Depth') }}: {{ $node['depth'] }}
+            @if(!empty($node['is_member']) && $node['is_member'])
+                <span class="badge badge-success ml-1" style="font-size:9px;">{{ translate('Member') }}</span>
+            @else
+                <span class="badge badge-secondary ml-1" style="font-size:9px;">{{ translate('Non-Member') }}</span>
+            @endif
         </div>
-    </div>
+    </a>
 
     @if(!empty($node['children']) && count($node['children']) > 0)
         <div class="matrix-children">
