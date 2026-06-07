@@ -4,6 +4,7 @@ namespace App\CentralLogics;
 
 use App\Model\BusinessSetting;
 use App\Model\LoyaltyTransaction;
+use App\Model\MatrixMember;
 use App\Models\WalletBonus;
 use App\Traits\HelperTrait;
 use App\User;
@@ -34,7 +35,7 @@ class CustomerLogic{
         $debit = 0.0;
         $credit = 0.0;
 
-        if(in_array($transaction_type, ['add_fund_by_admin','add_fund','loyalty_point', 'referrer', 'add_fund_bonus', 'refund']))
+        if(in_array($transaction_type, ['add_fund_by_admin','add_fund','loyalty_point', 'referrer', 'add_fund_bonus', 'refund', 'member_activation', 'point_transfer']))
         {
             $credit = $amount;
 
@@ -254,6 +255,112 @@ class CustomerLogic{
 
         return false;
 
+    }
+
+    /**
+     * Process member activation — 6500 point collapse.
+     * When a user reaches the milestone, activate membership, deduct the milestone,
+     * and credit any excess points to the wallet.
+     *
+     * @param int $userId
+     * @return array ['activated' => bool, 'excess' => float, 'message' => string]
+     */
+    public static function processMemberActivation(int $userId): array
+    {
+        $user = User::find($userId);
+        if (!$user || $user->is_member) {
+            return ['activated' => false, 'excess' => 0, 'message' => $user ? 'Already a member' : 'User not found'];
+        }
+
+        $milestone = (int) (BusinessSetting::where('key', 'member_milestone_points')->first()->value ?? 6500);
+        if ($user->total_point_value < $milestone) {
+            return ['activated' => false, 'excess' => 0, 'message' => 'Milestone not reached'];
+        }
+
+        $excess = $user->total_point_value - $milestone;
+
+        DB::transaction(function () use ($user, $milestone, $excess) {
+            $user->is_member = true;
+            $user->total_point_value = 0;
+            $user->save();
+
+            if ($excess > 0 && BusinessSetting::where('key', 'wallet_status')->first()->value == 1) {
+                self::create_wallet_transaction(
+                    $user->id,
+                    $excess,
+                    'member_activation',
+                    'Member activation excess points'
+                );
+            }
+        });
+
+        // After user becomes an active member, check if their parent qualifies for incentives
+        $matrixMember = MatrixMember::where('user_id', $userId)->first();
+        if ($matrixMember && $matrixMember->parent_id) {
+            MatrixLogic::checkAndAwardIncentives($matrixMember->parent_id);
+        }
+
+        return [
+            'activated' => true,
+            'excess' => $excess,
+            'message' => $excess > 0
+                ? "Member activated, {$excess} excess points credited to wallet"
+                : 'Member activated successfully'
+        ];
+    }
+
+    /**
+     * Transfer points from one user to another.
+     *
+     * @param int $fromUserId
+     * @param int $toUserId
+     * @param int $amount
+     * @return array ['success' => bool, 'message' => string]
+     */
+    public static function transferPoints(int $fromUserId, int $toUserId, int $amount): array
+    {
+        if ($amount <= 0) {
+            return ['success' => false, 'message' => 'Transfer amount must be positive'];
+        }
+
+        $fromUser = User::find($fromUserId);
+        $toUser = User::find($toUserId);
+
+        if (!$fromUser) {
+            return ['success' => false, 'message' => 'Sender not found'];
+        }
+        if (!$toUser) {
+            return ['success' => false, 'message' => 'Receiver not found'];
+        }
+        if ($fromUser->total_point_value < $amount) {
+            return ['success' => false, 'message' => 'Insufficient points'];
+        }
+
+        DB::transaction(function () use ($fromUser, $toUser, $amount) {
+            $fromUser->total_point_value -= $amount;
+            $fromUser->save();
+
+            $toUser->total_point_value += $amount;
+            $toUser->save();
+
+            if (BusinessSetting::where('key', 'wallet_status')->first()->value == 1) {
+                self::create_wallet_transaction(
+                    $fromUser->id,
+                    $amount,
+                    'point_transfer',
+                    "Points transferred to user {$toUser->id}"
+                );
+            }
+        });
+
+        // Check if receiver should be activated
+        $activation = self::processMemberActivation($toUserId);
+
+        return [
+            'success' => true,
+            'message' => "{$amount} points transferred successfully" . ($activation['activated'] ? ' and receiver member activated' : ''),
+            'receiver_activated' => $activation['activated'],
+        ];
     }
 
     public static function add_to_wallet_bonus($customer_id, float $amount)
