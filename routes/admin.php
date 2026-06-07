@@ -484,6 +484,7 @@ Route::group(['as' => 'admin.'], function () {
                 Route::get('/', [MemberController::class, 'list'])->name('list');
                 Route::post('toggle-status/{id}', [MemberController::class, 'toggleMemberStatus'])->name('toggle-status');
                 Route::post('update-milestone', [MemberController::class, 'updateMilestone'])->name('update-milestone');
+                Route::post('transfer-points', [MemberController::class, 'transferPoints'])->name('transfer-points');
             });
 
             Route::group(['prefix' => 'matrix', 'as' => 'matrix.'], function () {

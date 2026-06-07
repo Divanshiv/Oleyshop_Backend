@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\CentralLogics\CustomerLogic;
 use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
 use App\Model\BusinessSetting;
@@ -12,6 +13,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class MemberController extends Controller
 {
@@ -104,6 +106,44 @@ class MemberController extends Controller
         }
 
         Toastr::success(translate('Member milestone updated successfully!'));
+        return back();
+    }
+
+    /**
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function transferPoints(Request $request): RedirectResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'from_user_id' => 'required|integer|exists:users,id',
+            'to_user_id' => 'required|integer|exists:users,id|different:from_user_id',
+            'amount' => 'required|integer|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            Toastr::error(translate('Validation failed: ') . implode(', ', $validator->errors()->all()));
+            return back();
+        }
+
+        $fromUser = User::find($request->from_user_id);
+        if ($fromUser->total_point_value < (int)$request->amount) {
+            Toastr::error(translate('Insufficient points. ') . $fromUser->f_name . ' ' . $fromUser->l_name . ' has only ' . number_format($fromUser->total_point_value) . ' points.');
+            return back();
+        }
+
+        $result = CustomerLogic::transferPoints(
+            (int)$request->from_user_id,
+            (int)$request->to_user_id,
+            (int)$request->amount
+        );
+
+        if ($result['success']) {
+            Toastr::success($result['message']);
+        } else {
+            Toastr::error($result['message']);
+        }
+
         return back();
     }
 }

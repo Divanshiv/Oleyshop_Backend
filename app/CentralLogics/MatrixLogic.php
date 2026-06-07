@@ -72,6 +72,7 @@ class MatrixLogic
 
     /**
      * Check and award incentives for a user based on team size.
+     * Incentives are only awarded if all 4 direct referrals are active members.
      * Walks through all levels and awards any that haven't been given yet.
      */
     public static function checkAndAwardIncentives($userId): void
@@ -79,6 +80,18 @@ class MatrixLogic
         $user = User::find($userId);
         if (!$user) {
             return;
+        }
+
+        // Require all 4 direct referrals to be active members before awarding incentives
+        $directChildren = MatrixMember::where('parent_id', $userId)->get();
+        if ($directChildren->count() < 4) {
+            return; // Not all 4 positions filled yet
+        }
+        foreach ($directChildren as $child) {
+            $childUser = User::find($child->user_id);
+            if (!$childUser || !$childUser->is_member) {
+                return; // A direct referral is not an active member
+            }
         }
 
         $teamCount = $user->total_team_members;
@@ -151,6 +164,7 @@ class MatrixLogic
             'id' => $member->user_id,
             'name' => $member->user ? ($member->user->f_name . ' ' . $member->user->l_name) : 'Unknown',
             'phone' => $member->user ? $member->user->phone : '',
+            'is_member' => $member->user ? (bool)$member->user->is_member : false,
             'position' => $member->position,
             'depth' => $member->depth,
         ];
@@ -190,12 +204,31 @@ class MatrixLogic
             ? MatrixLevel::active()->where('level', $user->matrix_level)->first()
             : null;
 
+        // Check direct referrals activation status
+        $directChildren = MatrixMember::where('parent_id', $userId)->get();
+        $directReferrals = $directChildren->map(function ($child) {
+            $cu = User::find($child->user_id);
+            return [
+                'id' => $child->user_id,
+                'position' => $child->position,
+                'is_member' => $cu ? (bool)$cu->is_member : false,
+                'name' => $cu ? ($cu->f_name . ' ' . $cu->l_name) : 'Unknown',
+            ];
+        })->toArray();
+        $allDirectActive = count($directReferrals) === 4 && collect($directReferrals)->every(fn($r) => $r['is_member']);
+        $incentivesEligible = count($directReferrals) === 4 && $allDirectActive;
+
         return [
             'user_id' => $user->id,
             'name' => $user->f_name . ' ' . $user->l_name,
+            'is_member' => (bool)$user->is_member,
             'current_level' => $user->matrix_level,
             'current_position' => $user->matrix_position,
             'total_team_members' => $teamCount,
+            'direct_referrals_filled' => count($directReferrals),
+            'direct_referrals_active' => count(array_filter($directReferrals, fn($r) => $r['is_member'])),
+            'incentives_eligible' => $incentivesEligible,
+            'direct_referrals' => $directReferrals,
             'current_level_info' => $currentLevel ? [
                 'level' => $currentLevel->level,
                 'position_name' => $currentLevel->position_name,
@@ -229,6 +262,7 @@ class MatrixLogic
                 'phone' => $member->user ? $member->user->phone : '',
                 'email' => $member->user ? $member->user->email : '',
                 'position' => $member->position,
+                'is_member' => $member->user ? (bool)$member->user->is_member : false,
                 'joined_at' => $member->created_at,
             ];
         })->toArray();

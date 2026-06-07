@@ -53,6 +53,10 @@
                 </form>
 
                 <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#transferModal">
+                        <i class="tio-exchange"></i>
+                        {{ translate('Transfer Points') }}
+                    </button>
                     <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#milestoneModal">
                         <i class="tio-settings-outlined"></i>
                         {{ translate('Milestone Settings') }}
@@ -77,8 +81,13 @@
                     <tbody id="set-rows">
                         @foreach ($customers as $key => $customer)
                             @php
-                                $progress = min(100, ($customer->total_point_value / max($memberMilestone, 1)) * 100);
-                                $remaining = max(0, $memberMilestone - $customer->total_point_value);
+                                if ($customer->is_member) {
+                                    $progress = 100;
+                                    $remaining = 0;
+                                } else {
+                                    $progress = min(100, ($customer->total_point_value / max($memberMilestone, 1)) * 100);
+                                    $remaining = max(0, $memberMilestone - $customer->total_point_value);
+                                }
                             @endphp
                             <tr>
                                 <td>{{ $customers->firstItem() + $key }}</td>
@@ -224,10 +233,72 @@
             </div>
         </div>
     </div>
+
+    {{-- Transfer Points Modal --}}
+    <div class="modal fade" id="transferModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form action="{{ route('admin.customer.members.transfer-points') }}" method="post">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ translate('Transfer Points') }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>{{ translate('From (Sender)') }}</label>
+                            <select name="from_user_id" class="form-control js-select2-customer" required>
+                                <option value="">{{ translate('-- Select Sender --') }}</option>
+                                @foreach($customers as $c)
+                                    <option value="{{ $c->id }}">
+                                        #{{ $c->id }} {{ $c->f_name }} {{ $c->l_name }} ({{ number_format($c->total_point_value ?? 0) }} pts)
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>{{ translate('To (Receiver)') }}</label>
+                            <select name="to_user_id" class="form-control js-select2-customer" required>
+                                <option value="">{{ translate('-- Select Receiver --') }}</option>
+                                @foreach($customers as $c)
+                                    <option value="{{ $c->id }}">
+                                        #{{ $c->id }} {{ $c->f_name }} {{ $c->l_name }} ({{ number_format($c->total_point_value ?? 0) }} pts)
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>{{ translate('Points to Transfer') }}</label>
+                            <input type="number" name="amount" class="form-control" min="1" required
+                                placeholder="{{ translate('Enter amount') }}">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            {{ translate('Cancel') }}
+                        </button>
+                        <button type="submit" class="btn btn-info">
+                            <i class="tio-exchange"></i> {{ translate('Transfer') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('script_2')
     <script>
+        // Initialize select2 for customer dropdowns in transfer modal
+        $(document).ready(function () {
+            $('.js-select2-customer').select2({
+                width: '100%',
+                dropdownParent: $('#transferModal')
+            });
+        });
+
         function toggleMemberStatus(id) {
             event.preventDefault();
             Swal.fire({

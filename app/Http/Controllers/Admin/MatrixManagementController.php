@@ -31,15 +31,15 @@ class MatrixManagementController extends Controller
     {
         $perPage = (int) $request->query('per_page', Helpers::getPagination());
         $queryParam = ['per_page' => $perPage];
-        $search = $request['search'];
+        $search = $request['search'] ?? '';
 
         $customers = $this->user->withCount(['orders'])
             ->with(['matrixMember' => function ($q) {
                 $q->withCount(['children']);
             }]);
 
-        if ($request->has('search')) {
-            $key = explode(' ', $request['search']);
+        if ($request->filled('search')) {
+            $key = explode(' ', $search);
             $customers = $customers->where(function ($q) use ($key) {
                 foreach ($key as $value) {
                     $q->orWhere('f_name', 'like', "%{$value}%")
@@ -48,15 +48,12 @@ class MatrixManagementController extends Controller
                         ->orWhere('email', 'like', "%{$value}%");
                 }
             });
-            $queryParam['search'] = $request->search;
+            $queryParam['search'] = $search;
         }
 
-        if ($request->has('matrix_level_filter')) {
-            $levelFilter = $request['matrix_level_filter'];
-            if ($levelFilter !== '') {
-                $customers = $customers->where('matrix_level', $levelFilter);
-            }
-            $queryParam['matrix_level_filter'] = $request->matrix_level_filter;
+        if ($request->filled('matrix_level_filter')) {
+            $customers = $customers->where('matrix_level', $request['matrix_level_filter']);
+            $queryParam['matrix_level_filter'] = $request['matrix_level_filter'];
         }
 
         $customers = $customers->latest()->paginate($perPage)->appends($queryParam);
