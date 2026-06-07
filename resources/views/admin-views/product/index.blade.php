@@ -304,6 +304,14 @@
                                                        placeholder="{{ translate('Ex : 1.00') }}">
                                             </div>
                                         </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="input-label" for="point_value">{{ translate('Point Value') }}</label>
+                                                <input type="number" min="0" step="1"
+                                                       value="{{ old('point_value', 500) }}" name="point_value" id="point_value" class="form-control"
+                                                       placeholder="{{ translate('Ex : 500') }}">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

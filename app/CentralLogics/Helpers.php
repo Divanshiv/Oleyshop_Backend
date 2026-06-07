@@ -54,7 +54,7 @@ class Helpers
         } else {
             $match = json_decode($variation, true)[0];
             $result = 0;
-            foreach (json_decode($product['variations'], true) as $property => $value) {
+            foreach (json_decode($product['variations'] ?? '[]', true) as $property => $value) {
                 if ($value['type'] == $match['type']) {
                     $result = $value['price'];
                 }
@@ -88,7 +88,7 @@ class Helpers
                     $item['category_discount'] = [];
                 }
 
-                foreach (json_decode($item['variations'], true) as $var) {
+                foreach (json_decode($item['variations'] ?? '[]', true) as $var) {
                     $variations[] = [
                         'type' => $var['type'],
                         'price' => (float)$var['price'],

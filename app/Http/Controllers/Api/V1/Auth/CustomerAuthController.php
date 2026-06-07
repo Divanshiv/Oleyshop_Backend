@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\CentralLogics\Helpers;
+use App\CentralLogics\MatrixLogic;
 use App\CentralLogics\SMSModule;
 use App\Http\Controllers\Controller;
 use App\Model\EmailVerifications;
@@ -76,6 +77,10 @@ class CustomerAuthController extends Controller
             'referral_code' => Helpers::generate_referer_code(),
             'referred_by' => $refer_user->id ?? null,
         ]);
+
+        if ($user->referred_by) {
+            MatrixLogic::addMemberToMatrix($user->id, $user->referred_by);
+        }
 
         $emailVerification = (int) $this->loginSetup->where(['key' => 'email_verification'])?->first()->value ?? 0;
         $phoneVerification = (int) $this->loginSetup->where(['key' => 'phone_verification'])?->first()->value ?? 0;
@@ -786,6 +791,10 @@ class CustomerAuthController extends Controller
         $user->login_medium = 'OTP';
         $user->save();
 
+        if ($user->referred_by) {
+            MatrixLogic::addMemberToMatrix($user->id, $user->referred_by);
+        }
+
         $token = $user->createToken('RestaurantCustomerAuth')->accessToken;
         return response()->json(['token' => $token], 200);
 
@@ -979,6 +988,10 @@ class CustomerAuthController extends Controller
         $user->referred_by = $refer_user->id ?? null;
         $user->login_medium = 'social';
         $user->save();
+
+        if ($user->referred_by) {
+            MatrixLogic::addMemberToMatrix($user->id, $user->referred_by);
+        }
 
         $phoneVerificationStatus = (int) $this->loginSetup->where(['key' => 'phone_verification'])?->first()->value ?? 0;
         if ($phoneVerificationStatus){

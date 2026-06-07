@@ -32,6 +32,7 @@ class Order extends Model
         'bring_change_amount'   => 'float',
         'extra_discount'   => 'float',
         'weight_charge_amount'   => 'float',
+        'point_value'            => 'float',
     ];
 
     protected $fillable = [

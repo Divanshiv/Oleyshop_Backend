@@ -351,6 +351,7 @@ class ProductController extends Controller
         $product->attributes = $request->has('attribute_id') ? json_encode($request->attribute_id) : json_encode([]);
         $product->status = $request->status ? $request->status : 0;
         $product->weight = $request->weight ?? 0;
+        $product->point_value = $request->point_value ?? 500;
         $product->save();
 
         $product->tags()->sync($tagIds);
@@ -573,6 +574,7 @@ class ProductController extends Controller
         $product->attributes = $request->has('attribute_id') ? json_encode($request->attribute_id) : json_encode([]);
         $product->status = $request->status ? $request->status : 0;
         $product->weight = $request->weight;
+        $product->point_value = $request->point_value ?? 500;
         $product->save();
 
         $product->tags()->sync($tagIds);

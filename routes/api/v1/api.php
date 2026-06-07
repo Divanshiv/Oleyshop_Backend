@@ -17,12 +17,14 @@ use App\Http\Controllers\Api\V1\DeliveryManReviewController;
 use App\Http\Controllers\Api\V1\GuestUserController;
 use App\Http\Controllers\Api\V1\LoyaltyPointController;
 use App\Http\Controllers\Api\V1\MapApiController;
+use App\Http\Controllers\Api\V1\MatrixController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\OfferController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\OfflinePaymentMethodController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\TimeSlotController;
+use App\Http\Controllers\Api\V1\WishlistController;
 
 Route::group(['middleware'=>'localization'], function () {
     Route::group(['prefix' => 'auth', 'namespace' => 'Auth'], function () {
@@ -145,6 +147,16 @@ Route::group(['middleware'=>'localization'], function () {
         Route::get('bonus/list', [CustomerWalletController::class, 'walletBonusList']);
 
         Route::get('loyalty-point-transactions', [LoyaltyPointController::class, 'pointTransactions']);
+
+        Route::get('member-status', [CustomerController::class, 'memberStatus']);
+
+        Route::group(['prefix' => 'matrix'], function () {
+            Route::get('status', [MatrixController::class, 'status']);
+            Route::get('team', [MatrixController::class, 'team']);
+            Route::get('tree', [MatrixController::class, 'tree']);
+            Route::get('incentive-history', [MatrixController::class, 'incentiveHistory']);
+            Route::get('levels', [MatrixController::class, 'levels']);
+        });
     });
 
     Route::group(['prefix' => 'coupon', 'middleware' => ['auth:api', 'customer_is_block']], function () {

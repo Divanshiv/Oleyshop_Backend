@@ -26,6 +26,7 @@ class Product extends Model
         'updated_at'  => 'datetime',
         'is_featured' => 'integer',
         'weight'      => 'float',
+        'point_value' => 'integer',
     ];
 
     public function translations(): \Illuminate\Database\Eloquent\Relations\MorphMany

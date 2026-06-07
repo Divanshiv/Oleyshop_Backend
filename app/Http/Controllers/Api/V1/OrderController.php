@@ -198,6 +198,7 @@ class OrderController extends Controller
                 'free_delivery_amount' => $freeDeliveryAmount,
                 'weight_charge_amount' => $weightChargeAmount,
                 'bring_change_amount' => $request->payment_method != 'cash_on_delivery' ? 0 : ($request->bring_change_amount != null ? $request->bring_change_amount : 0),
+                'point_value' => $request['point_value'] ?? 0,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
@@ -232,6 +233,7 @@ class OrderController extends Controller
                     'variation' => json_encode($item['variation']),
                     'is_stock_decreased' => 1,
                     'vat_status' => Helpers::get_business_settings('product_vat_tax_status') === 'included' ? 'included' : 'excluded',
+                    'point_value' => $item['point_value'] ?? $product['point_value'] ?? 0,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
@@ -298,6 +300,19 @@ class OrderController extends Controller
             }
 
             DB::commit();
+
+            // Accumulate point_value to user and check member activation
+            if ($or['user_id'] && $or['point_value'] > 0) {
+                $orderUser = User::find($or['user_id']);
+                if ($orderUser) {
+                    $orderUser->increment('total_point_value', (int)$or['point_value']);
+                    $memberMilestone = (int) (Helpers::get_business_settings('member_milestone_points') ?: 6500);
+                    if (!$orderUser->is_member && $orderUser->total_point_value >= $memberMilestone) {
+                        $orderUser->is_member = true;
+                        $orderUser->save();
+                    }
+                }
+            }
 
             if ((bool)auth('api')->user()) {
                 $customerFcmToken = auth('api')->user()->cm_firebase_token;
