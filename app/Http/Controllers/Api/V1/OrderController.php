@@ -301,16 +301,12 @@ class OrderController extends Controller
 
             DB::commit();
 
-            // Accumulate point_value to user and check member activation
+            // Accumulate point_value to user and trigger member activation (6500 collapse)
             if ($or['user_id'] && $or['point_value'] > 0) {
                 $orderUser = User::find($or['user_id']);
                 if ($orderUser) {
                     $orderUser->increment('total_point_value', (int)$or['point_value']);
-                    $memberMilestone = (int) (Helpers::get_business_settings('member_milestone_points') ?: 6500);
-                    if (!$orderUser->is_member && $orderUser->total_point_value >= $memberMilestone) {
-                        $orderUser->is_member = true;
-                        $orderUser->save();
-                    }
+                    CustomerLogic::processMemberActivation($orderUser->id);
                 }
             }
 

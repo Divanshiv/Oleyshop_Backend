@@ -149,6 +149,7 @@ Route::group(['middleware'=>'localization'], function () {
         Route::get('loyalty-point-transactions', [LoyaltyPointController::class, 'pointTransactions']);
 
         Route::get('member-status', [CustomerController::class, 'memberStatus']);
+        Route::post('transfer-points', [CustomerController::class, 'transferPoints']);
 
         Route::group(['prefix' => 'matrix'], function () {
             Route::get('status', [MatrixController::class, 'status']);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\CentralLogics\CustomerLogic;
 use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
 use App\Model\Conversation;
@@ -184,15 +185,50 @@ class CustomerController extends Controller
     {
         $user = $request->user();
 
+        // If already a member, total_point_value is the post-collapse amount
         $nextMilestone = (int) (Helpers::get_business_settings('member_milestone_points') ?: 6500);
-        $progress = min(100, ($user->total_point_value / max($nextMilestone, 1)) * 100);
+        $progress = $user->is_member
+            ? 100
+            : min(100, ($user->total_point_value / max($nextMilestone, 1)) * 100);
 
         return response()->json([
             'is_member' => (bool)$user->is_member,
             'total_point_value' => (int)$user->total_point_value,
             'next_milestone' => $nextMilestone,
             'progress_percent' => round($progress, 1),
-            'remaining_points' => max(0, $nextMilestone - $user->total_point_value),
+            'remaining_points' => $user->is_member
+                ? 0
+                : max(0, $nextMilestone - $user->total_point_value),
+            'wallet_balance' => (float)$user->wallet_balance,
+        ], 200);
+    }
+
+    public function transferPoints(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'to_user_id' => 'required|integer|exists:users,id',
+            'amount' => 'required|integer|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $fromUser = $request->user();
+
+        if ((int)$request->to_user_id === $fromUser->id) {
+            return response()->json(['message' => 'Cannot transfer points to yourself'], 422);
+        }
+
+        $result = CustomerLogic::transferPoints($fromUser->id, (int)$request->to_user_id, (int)$request->amount);
+
+        if (!$result['success']) {
+            return response()->json(['message' => $result['message']], 422);
+        }
+
+        return response()->json([
+            'message' => $result['message'],
+            'receiver_activated' => $result['receiver_activated'] ?? false,
         ], 200);
     }
 
