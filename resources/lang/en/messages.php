@@ -3307,4 +3307,8 @@
   'To (Receiver)' => 'To (Receiver)',
   '-- Select Sender --' => '-- Select Sender --',
   'From (Sender)' => 'From (Sender)',
+  'Transfer Points' => 'Transfer Points',
+  'Minimum 6 characters. Copy this password and share with the customer.' => 'Minimum 6 characters. Copy this password and share with the customer.',
+  'Something went wrong. Kindly contact with admin.' => 'Something went wrong. Kindly contact with admin.',
+  'order_partial_paymen...' => 'Order partial paymen...',
 );

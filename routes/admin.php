@@ -461,6 +461,7 @@ Route::group(['as' => 'admin.'], function () {
             Route::delete('delete/{id}', [CustomerController::class, 'delete'])->name('delete');
             Route::get('status/{id}/{status}', [CustomerController::class, 'status'])->name('status');
             Route::get('export', [CustomerController::class, 'exportCustomer'])->name('export');
+            Route::post('password-update', [CustomerController::class, 'updatePassword'])->name('password-update');
 
             Route::get('select-list', [CustomerWalletController::class, 'getCustomers'])->name('select-list');
             Route::group(['prefix' => 'wallet', 'as' => 'wallet.'], function () {

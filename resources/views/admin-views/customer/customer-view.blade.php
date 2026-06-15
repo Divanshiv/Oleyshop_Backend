@@ -192,6 +192,9 @@
                             <hr>
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h5>{{translate('contact')}} {{translate('info')}}</h5>
+                                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#passwordModal">
+                                    <i class="tio-lock"></i> {{translate('password')}}
+                                </button>
                             </div>
                             @php($googleMapStatus = \App\CentralLogics\Helpers::get_business_settings('google_map_status'))
                             @foreach($customer->addresses as $address)
@@ -227,4 +230,56 @@
 
         </div>
     </div>
+
+    {{-- Password Change Modal --}}
+    <div class="modal fade" id="passwordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('admin.customer.password-update') }}" method="post">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $customer->id }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ translate('Change Customer Password') }}</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="new-password">{{ translate('New Password') }}</label>
+                            <div class="input-group">
+                                <input type="text" name="password" id="new-password" class="form-control"
+                                       minlength="6" required
+                                       placeholder="{{ translate('Enter or generate new password') }}">
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-secondary" id="generate-password-btn"
+                                            title="{{ translate('Generate password') }}">
+                                        <i class="tio-refresh"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ translate('Minimum 6 characters. Copy this password and share with the customer.') }}</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ translate('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ translate('Save') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
+
+@push('script_2')
+    <script>
+        document.getElementById('generate-password-btn')?.addEventListener('click', function() {
+            const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$&_';
+            let password = '';
+            for (let i = 0; i < 10; i++) {
+                password += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+            document.getElementById('new-password').value = password;
+        });
+    </script>
+@endpush

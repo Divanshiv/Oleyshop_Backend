@@ -18,6 +18,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Rap2hpoutre\FastExcel\FastExcel;
@@ -254,6 +255,25 @@ class CustomerController extends Controller
         }
 
         Toastr::success(translate('Block status updated!'));
+        return back();
+    }
+
+    /**
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function updatePassword(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'id' => 'required|exists:users,id',
+            'password' => 'required|string|min:6',
+        ]);
+
+        $customer = $this->user->find($request->id);
+        $customer->password = Hash::make($request->password);
+        $customer->save();
+
+        Toastr::success(translate('Password updated successfully!'));
         return back();
     }
 

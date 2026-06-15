@@ -32,18 +32,18 @@ class ConfigServiceProvider extends ServiceProvider
         try {
             $emailServices = Helpers::get_business_settings('mail_config');
             if ($emailServices) {
-                $config = array(
-                    'driver' => $emailServices['driver'],
-                    'host' => $emailServices['host'],
-                    'port' => $emailServices['port'],
-                    'username' => $emailServices['username'],
-                    'password' => $emailServices['password'],
-                    'encryption' => $emailServices['encryption'],
-                    'from' => array('address' => $emailServices['email_id'], 'name' => $emailServices['name']),
-                    'sendmail' => '/usr/sbin/sendmail -bs',
-                    'pretend' => false,
-                );
-                Config::set('mail', $config);
+                Config::set('mail.mailers.smtp', [
+                    'transport' => $emailServices['driver'] ?? 'smtp',
+                    'host' => $emailServices['host'] ?? '',
+                    'port' => $emailServices['port'] ?? 587,
+                    'username' => $emailServices['username'] ?? '',
+                    'password' => $emailServices['password'] ?? '',
+                    'encryption' => $emailServices['encryption'] ?? 'tls',
+                ]);
+                Config::set('mail.from', [
+                    'address' => $emailServices['email_id'] ?? '',
+                    'name' => $emailServices['name'] ?? '',
+                ]);
             }
 
 

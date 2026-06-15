@@ -16,3 +16,4 @@ yarn-error.log
 /storage/update.zip
 /.idea
 /.vscode
+/graphify-out/cache

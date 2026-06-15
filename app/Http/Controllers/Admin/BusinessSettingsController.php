@@ -1867,7 +1867,7 @@ class BusinessSettingsController extends Controller
             'value' => $request['customer_loyalty_point']??0
         ]);
         $this->InsertOrUpdateBusinessData(['key' => 'ref_earning_status'], [
-            'value' => $request['ref_earning_status'] ?? 0
+            'value' => $request['ref_earning_status'] ?? 1
         ]);
         $this->InsertOrUpdateBusinessData(['key' => 'loyalty_point_exchange_rate'], [
             'value' => $request['loyalty_point_exchange_rate'] ?? 0

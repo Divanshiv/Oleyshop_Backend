@@ -306,7 +306,7 @@ INSERT INTO `business_settings` (`id`, `key`, `value`, `created_at`, `updated_at
 (64, 'facebook_social_login', '1', NULL, NULL),
 (65, 'wallet_status', '0', NULL, NULL),
 (66, 'loyalty_point_status', '0', NULL, NULL),
-(67, 'ref_earning_status', '0', NULL, NULL),
+(67, 'ref_earning_status', '1', NULL, NULL),
 (68, 'loyalty_point_exchange_rate', '0', NULL, NULL),
 (69, 'ref_earning_exchange_rate', '0', NULL, NULL),
 (70, 'loyalty_point_percent_on_item_purchase', '0', NULL, NULL),
