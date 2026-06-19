@@ -3,7 +3,6 @@
 namespace App\CentralLogics;
 
 use App\Model\BusinessSetting;
-use App\Model\LoyaltyTransaction;
 use App\Model\MatrixMember;
 use App\Models\WalletBonus;
 use App\Traits\HelperTrait;
@@ -35,14 +34,9 @@ class CustomerLogic{
         $debit = 0.0;
         $credit = 0.0;
 
-        if(in_array($transaction_type, ['add_fund_by_admin','add_fund','loyalty_point', 'referrer', 'add_fund_bonus', 'refund', 'member_activation', 'point_transfer']))
+        if(in_array($transaction_type, ['add_fund_by_admin','add_fund','referrer', 'add_fund_bonus', 'refund', 'member_activation', 'point_transfer', 'point_value']))
         {
             $credit = $amount;
-
-            if($transaction_type == 'loyalty_point')
-            {
-                $credit = (int)($amount / BusinessSetting::where('key','loyalty_point_exchange_rate')->first()->value);
-            }
         }
         else if($transaction_type == 'order_place')
         {
@@ -62,7 +56,7 @@ class CustomerLogic{
             $user->save();
             $wallet_transaction->save();
             DB::commit();
-            if(in_array($transaction_type, ['loyalty_point','order_place','add_fund_by_admin', 'referrer', 'add_fund', 'add_fund_bonus'])) return $wallet_transaction;
+            if(in_array($transaction_type, ['order_place','add_fund_by_admin', 'referrer', 'add_fund', 'add_fund_bonus'])) return $wallet_transaction;
             return true;
         }catch(\Exception $ex)
         {
@@ -73,58 +67,6 @@ class CustomerLogic{
         }
         return false;
     }
-
-    public static function create_loyalty_point_transaction($user_id, $referance, $amount, $transaction_type)
-    {
-        $settings = array_column(BusinessSetting::whereIn('key',['loyalty_point_status','loyalty_point_exchange_rate','loyalty_point_percent_on_item_purchase'])->get()->toArray(), 'value','key');
-        if($settings['loyalty_point_status'] != 1)
-        {
-            return true;
-        }
-
-        $credit = 0;
-        $debit = 0;
-        $user = User::find($user_id);
-
-        $loyalty_point_transaction = new LoyaltyTransaction();
-        $loyalty_point_transaction->user_id = $user->id;
-        $loyalty_point_transaction->transaction_id = Str::random('30');
-        $loyalty_point_transaction->reference = $referance;
-        $loyalty_point_transaction->transaction_type = $transaction_type;
-
-        if($transaction_type=='order_place')
-        {
-            $credit = (int)($amount * $settings['loyalty_point_percent_on_item_purchase']/100);
-        }
-        else if($transaction_type=='point_to_wallet')
-        {
-            $debit = $amount;
-        }
-
-        $current_balance = $user->loyalty_point + $credit - $debit;
-        $loyalty_point_transaction->balance = $current_balance;
-        $loyalty_point_transaction->credit = $credit;
-        $loyalty_point_transaction->debit = $debit;
-        $loyalty_point_transaction->created_at = now();
-        $loyalty_point_transaction->updated_at = now();
-        $user->loyalty_point = $current_balance;
-
-        try{
-            DB::beginTransaction();
-            $user->save();
-            $loyalty_point_transaction->save();
-            DB::commit();
-            return true;
-        }catch(\Exception $ex)
-        {
-            info($ex);
-            DB::rollback();
-
-            return false;
-        }
-        return false;
-    }
-
 
     public static function referral_earning_wallet_transaction($user_id, $transaction_type, $referance)
     {
@@ -161,44 +103,6 @@ class CustomerLogic{
 
             return false;
         }
-    }
-
-    public static function loyalty_point_wallet_transfer_transaction($user_id, $point, $amount) {
-
-        DB::transaction(function () use ($user_id, $point, $amount) {
-
-            $user = User::find($user_id);
-            $currentWalletBalance = $user->wallet_balance;
-            $currentPoint = $user->loyalty_point;
-
-            $user->loyalty_point -= $point;
-            $user->wallet_balance += $amount;
-            $user->save();
-
-            WalletTransaction::create([
-                'user_id' => $user_id,
-                'transaction_id' => Str::random('30'),
-                'reference' => null,
-                'transaction_type' => 'loyalty_point_to_wallet',
-                'debit' => 0,
-                'credit' => $amount,
-                'balance' => $currentWalletBalance + $amount,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            LoyaltyTransaction::create([
-                'user_id' => $user_id,
-                'transaction_id' => Str::random('30'),
-                'reference' => null,
-                'transaction_type' => 'loyalty_point_to_wallet',
-                'debit' => $point,
-                'credit' => 0,
-                'balance' => $currentPoint - $point,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        });
     }
 
     public static function add_to_wallet($customer_id, float $amount)

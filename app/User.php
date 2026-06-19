@@ -24,7 +24,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name','f_name', 'l_name', 'phone', 'email', 'password', 'loyalty_point', 'wallet_balance', 'referral_code', 'referred_by',
+        'name','f_name', 'l_name', 'phone', 'email', 'password', 'wallet_balance', 'referral_code', 'referred_by',
         'matrix_level', 'matrix_position', 'total_team_members',
         'total_point_value', 'is_member',
     ];
@@ -47,7 +47,6 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'is_phone_verified' => 'integer',
         'is_member' => 'boolean',
-        'loyalty_point' => 'float',
         'wallet_balance' => 'float',
     ];
 

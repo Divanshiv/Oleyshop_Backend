@@ -651,42 +651,42 @@ class DummyDataSeeder extends Seeder
             [
                 'f_name' => 'Rahul', 'l_name' => 'Sharma', 'email' => 'rahul@example.com', 'phone' => '+91-9876500001',
                 'password' => bcrypt('12345678'), 'referral_code' => 'REF001', 'wallet_balance' => 500,
-                'loyalty_point' => 250, 'is_phone_verified' => 1, 'language_code' => 'en',
+                'is_phone_verified' => 1, 'language_code' => 'en',
             ],
             [
                 'f_name' => 'Priya', 'l_name' => 'Patel', 'email' => 'priya@example.com', 'phone' => '+91-9876500002',
                 'password' => bcrypt('12345678'), 'referral_code' => 'REF002', 'wallet_balance' => 200,
-                'loyalty_point' => 100, 'is_phone_verified' => 1, 'language_code' => 'en',
+                'is_phone_verified' => 1, 'language_code' => 'en',
             ],
             [
                 'f_name' => 'Amit', 'l_name' => 'Verma', 'email' => 'amit@example.com', 'phone' => '+91-9876500003',
                 'password' => bcrypt('12345678'), 'referral_code' => 'REF003', 'wallet_balance' => 1000,
-                'loyalty_point' => 500, 'is_phone_verified' => 1, 'language_code' => 'en',
+                'is_phone_verified' => 1, 'language_code' => 'en',
             ],
             [
                 'f_name' => 'Sneha', 'l_name' => 'Reddy', 'email' => 'sneha@example.com', 'phone' => '+91-9876500004',
                 'password' => bcrypt('12345678'), 'referral_code' => 'REF004', 'wallet_balance' => 0,
-                'loyalty_point' => 50, 'is_phone_verified' => 1, 'language_code' => 'en',
+                'is_phone_verified' => 1, 'language_code' => 'en',
             ],
             [
                 'f_name' => 'Vikram', 'l_name' => 'Singh', 'email' => 'vikram@example.com', 'phone' => '+91-9876500005',
                 'password' => bcrypt('12345678'), 'referral_code' => 'REF005', 'wallet_balance' => 750,
-                'loyalty_point' => 320, 'is_phone_verified' => 1, 'language_code' => 'en',
+                'is_phone_verified' => 1, 'language_code' => 'en',
             ],
             [
                 'f_name' => 'Neha', 'l_name' => 'Gupta', 'email' => 'neha@example.com', 'phone' => '+91-9876500006',
                 'password' => bcrypt('12345678'), 'referral_code' => 'REF006', 'wallet_balance' => 150,
-                'loyalty_point' => 80, 'is_phone_verified' => 1, 'language_code' => 'hi',
+                'is_phone_verified' => 1, 'language_code' => 'hi',
             ],
             [
                 'f_name' => 'Rajesh', 'l_name' => 'Kumar', 'email' => 'rajesh@example.com', 'phone' => '+91-9876500007',
                 'password' => bcrypt('12345678'), 'referral_code' => 'REF007', 'wallet_balance' => 0,
-                'loyalty_point' => 0, 'is_phone_verified' => 0, 'language_code' => 'en',
+                'is_phone_verified' => 0, 'language_code' => 'en',
             ],
             [
                 'f_name' => 'Ananya', 'l_name' => 'Joshi', 'email' => 'ananya@example.com', 'phone' => '+91-9876500008',
                 'password' => bcrypt('12345678'), 'referral_code' => 'REF008', 'wallet_balance' => 1200,
-                'loyalty_point' => 600, 'is_phone_verified' => 1, 'language_code' => 'en',
+                'is_phone_verified' => 1, 'language_code' => 'en',
             ],
         ];
 

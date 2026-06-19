@@ -259,20 +259,8 @@ class UpdateController extends Controller
             ]);
         }
 
-        if (!BusinessSetting::where(['key' => 'loyalty_point_status'])->first()) {
-            DB::table('business_settings')->updateOrInsert(['key' => 'loyalty_point_status'], [
-                'value' => '0'
-            ]);
-        }
-
         if (!BusinessSetting::where(['key' => 'ref_earning_status'])->first()) {
             DB::table('business_settings')->updateOrInsert(['key' => 'ref_earning_status'], [
-                'value' => '0'
-            ]);
-        }
-
-        if (!BusinessSetting::where(['key' => 'loyalty_point_exchange_rate'])->first()) {
-            DB::table('business_settings')->updateOrInsert(['key' => 'loyalty_point_exchange_rate'], [
                 'value' => '0'
             ]);
         }
@@ -280,18 +268,6 @@ class UpdateController extends Controller
         if (!BusinessSetting::where(['key' => 'ref_earning_exchange_rate'])->first()) {
             DB::table('business_settings')->updateOrInsert(['key' => 'ref_earning_exchange_rate'], [
                 'value' => '0'
-            ]);
-        }
-
-        if (!BusinessSetting::where(['key' => 'loyalty_point_percent_on_item_purchase'])->first()) {
-            DB::table('business_settings')->updateOrInsert(['key' => 'loyalty_point_percent_on_item_purchase'], [
-                'value' => '0'
-            ]);
-        }
-
-        if (!BusinessSetting::where(['key' => 'loyalty_point_minimum_point'])->first()) {
-            DB::table('business_settings')->updateOrInsert(['key' => 'loyalty_point_minimum_point'], [
-                'value' => '1'
             ]);
         }
 
