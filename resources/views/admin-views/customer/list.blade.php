@@ -85,6 +85,7 @@
                             <th>{{ translate('contact info') }}</th>
                             <th class="text-center">{{ translate('Total Orders') }}</th>
                             <th class="text-center">{{ translate('Total Order Amount') }}</th>
+                            <th class="text-center">{{ translate('total_point_value') }}</th>
                             <th class="text-center">{{ translate('status') }}</th>
                             <th class="text-center">{{ translate('action') }}</th>
                         </tr>
@@ -127,6 +128,11 @@
                                 <td>
                                     <div class="text-center">
                                         {{ Helpers::set_symbol(\App\User::total_order_amount($customer->id)) }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="text-center">
+                                        {{ number_format($customer->total_point_value ?? 0) }}
                                     </div>
                                 </td>
                                 <td>

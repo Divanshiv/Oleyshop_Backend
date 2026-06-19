@@ -55,12 +55,15 @@
                                     <option value="referral_order_place"
                                         {{ isset($transactionStatus) && $transactionStatus == 'referral_order_place	' ? 'selected' : '' }}>
                                         {{ translate('referral_order_place') }}</option>
-                                    <option value="loyalty_point_to_wallet"
-                                        {{ isset($transactionStatus) && $transactionStatus == 'loyalty_point_to_wallet' ? 'selected' : '' }}>
-                                        {{ translate('loyalty_point_to_wallet') }}</option>
                                     <option value="order_place"
                                         {{ isset($transactionStatus) && $transactionStatus == 'order_place' ? 'selected' : '' }}>
                                         {{ translate('order_place') }}</option>
+                                    <option value="point_value"
+                                        {{ isset($transactionStatus) && $transactionStatus == 'point_value' ? 'selected' : '' }}>
+                                        {{ translate('Point Value') }}</option>
+                                    <option value="member_activation"
+                                        {{ isset($transactionStatus) && $transactionStatus == 'member_activation' ? 'selected' : '' }}>
+                                        {{ translate('Member Activation') }}</option>
                                 </select>
                             </div>
                         </div>
@@ -100,7 +103,7 @@
                 <div class="resturant-card dashboard--card bg--2">
                     <h4 class="title">{{ translate('debit') }}</h4>
                     <span class="subtitle">
-                        {{ Helpers::set_symbol($debit) }}
+                        {{ number_format($debit) }}
                     </span>
                     <img class="resturant-icon" src="{{ asset('/public/assets/admin/img/dashboard/3.png') }}"
                         alt="{{ translate('image') }}">
@@ -111,7 +114,7 @@
                 <div class="resturant-card dashboard--card bg--3">
                     <h4 class="title">{{ translate('credit') }}</h4>
                     <span class="subtitle">
-                        {{ Helpers::set_symbol($credit) }}
+                        {{ number_format($credit) }}
                     </span>
                     <img class="resturant-icon" src="{{ asset('/public/assets/admin/img/dashboard/4.png') }}"
                         alt="{{ translate('image') }}">
@@ -121,7 +124,7 @@
                 <div class="resturant-card dashboard--card bg--1">
                     <h4 class="title">{{ translate('balance') }}</h4>
                     <span class="subtitle">
-                        {{ Helpers::set_symbol($balance) }}
+                        {{ number_format($balance) }}
                     </span>
                     <img class="resturant-icon" src="{{ asset('/public/assets/admin/img/dashboard/1.png') }}"
                         alt="{{ translate('image') }}">
@@ -166,16 +169,14 @@
                                     </td>
                                     <td>{{ $walletTransaction->credit }}</td>
                                     <td>{{ $walletTransaction->debit }}</td>
-                                    <td>{{ Helpers::set_symbol($walletTransaction->balance) }}</td>
+                                    <td>{{ number_format($walletTransaction->balance) }}</td>
                                     <td>
                                         <span
                                             class="badge badge-soft-{{ $walletTransaction->transaction_type == 'order_refund'
                                                 ? 'danger'
-                                                : ($walletTransaction->transaction_type == 'loyalty_point'
-                                                    ? 'warning'
-                                                    : ($walletTransaction->transaction_type == 'order_place'
-                                                        ? 'info'
-                                                        : 'success')) }}">
+                                                : ($walletTransaction->transaction_type == 'order_place'
+                                                    ? 'info'
+                                                    : 'success') }}">
                                             {{ translate($walletTransaction->transaction_type) }}
                                         </span>
                                     </td>

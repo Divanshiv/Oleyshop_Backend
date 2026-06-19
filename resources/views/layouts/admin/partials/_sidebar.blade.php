@@ -526,32 +526,6 @@
                                 </ul>
                             </li>
 
-                            <li class="navbar-vertical-aside-has-menu {{Request::is('admin/customer/loyalty-point*')?'active':''}}">
-                                <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle"
-                                   href="javascript:" title="{{translate('Customer Loyalty Point')}}">
-                                    <i class="tio-medal nav-icon"></i>
-                                    <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
-                                            {{translate('Customer Loyalty Point')}}
-                                        </span>
-                                </a>
-                                <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
-                                    style="display: {{Request::is('admin/customer/loyalty-point*')?'block':'none'}}">
-
-                                    <li class="nav-item {{Request::is('admin/customer/loyalty-point/report')?'active':''}}">
-                                        <a class="nav-link"
-                                           href="{{route('admin.customer.loyalty-point.report')}}"
-                                           title="{{translate('report')}}"
-                                        >
-                                            <span class="tio-circle nav-indicator-icon"></span>
-                                            <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
-                                                {{translate('report')}}
-                                            </span>
-                                        </a>
-                                    </li>
-
-                                </ul>
-                            </li>
-
                             <li class="navbar-vertical-aside-has-menu {{Request::is('admin/customer/members*')?'active':''}}">
                                 <a class="js-navbar-vertical-aside-menu-link nav-link"
                                    href="{{route('admin.customer.members.list')}}"
