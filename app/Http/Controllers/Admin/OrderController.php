@@ -274,7 +274,7 @@ class OrderController extends Controller
         if ($request->order_status == 'delivered') {
             if ($order->is_guest == 0){
                 if($order->user_id) {
-                    CustomerLogic::create_loyalty_point_transaction($order->user_id, $order->id, $order->order_amount, 'order_place');
+                    // Loyalty point removed
                 }
 
                 $user = $this->user->find($order->user_id);

@@ -25,7 +25,6 @@ use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\LocationSettingsController;
-use App\Http\Controllers\Admin\LoyaltyPointController;
 use App\Http\Controllers\Admin\MatrixManagementController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\NotificationController;
@@ -478,8 +477,6 @@ Route::group(['as' => 'admin.'], function () {
                     Route::delete('delete/{id}',  [WalletBonusController::class, 'delete'])->name('delete');
                 });
             });
-
-            Route::get('loyalty-point/report', [LoyaltyPointController::class, 'report'])->name('loyalty-point.report');
 
             Route::group(['prefix' => 'members', 'as' => 'members.'], function () {
                 Route::get('/', [MemberController::class, 'list'])->name('list');

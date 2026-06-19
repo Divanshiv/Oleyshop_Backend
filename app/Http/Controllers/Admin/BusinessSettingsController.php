@@ -1839,10 +1839,8 @@ class BusinessSettingsController extends Controller
     public function customerSetup(): Factory|View|Application
     {
         $data = $this->businessSettings->where('key','like','wallet_%')
-            ->orWhere('key','like','loyalty_%')
             ->orWhere('key','like','ref_earning_%')
-            ->orWhere('key','like','add_fund_to_wallet%')
-            ->orWhere('key','like','ref_earning_%')->get();
+            ->orWhere('key','like','add_fund_to_wallet%')->get();
         $data = array_column($data->toArray(), 'value','key');
 
         return view('admin-views.business-settings.customer-setup', compact('data'));
@@ -1855,31 +1853,17 @@ class BusinessSettingsController extends Controller
     public function customerSetupUpdate(Request $request): RedirectResponse
     {
         $request->validate([
-            'loyalty_point_exchange_rate'=>'nullable|numeric',
             'ref_earning_exchange_rate'=>'nullable|numeric',
-            'loyalty_point_minimum_point'=>'numeric|min:0|not_in:0',
         ]);
 
         $this->InsertOrUpdateBusinessData(['key' => 'wallet_status'], [
             'value' => $request['customer_wallet']??0
         ]);
-        $this->InsertOrUpdateBusinessData(['key' => 'loyalty_point_status'], [
-            'value' => $request['customer_loyalty_point']??0
-        ]);
         $this->InsertOrUpdateBusinessData(['key' => 'ref_earning_status'], [
             'value' => $request['ref_earning_status'] ?? 1
         ]);
-        $this->InsertOrUpdateBusinessData(['key' => 'loyalty_point_exchange_rate'], [
-            'value' => $request['loyalty_point_exchange_rate'] ?? 0
-        ]);
         $this->InsertOrUpdateBusinessData(['key' => 'ref_earning_exchange_rate'], [
             'value' => $request['ref_earning_exchange_rate'] ?? 0
-        ]);
-        $this->InsertOrUpdateBusinessData(['key' => 'loyalty_point_percent_on_item_purchase'], [
-            'value' => $request['loyalty_point_percent_on_item_purchase']??0
-        ]);
-        $this->InsertOrUpdateBusinessData(['key' => 'loyalty_point_minimum_point'], [
-            'value' => $request['minimun_transfer_point']??1
         ]);
 
         $this->InsertOrUpdateBusinessData(['key' => 'add_fund_to_wallet'], [
