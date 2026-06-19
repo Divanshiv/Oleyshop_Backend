@@ -15,7 +15,6 @@ use App\Http\Controllers\Api\V1\CustomerWalletController;
 use App\Http\Controllers\Api\V1\DeliverymanController;
 use App\Http\Controllers\Api\V1\DeliveryManReviewController;
 use App\Http\Controllers\Api\V1\GuestUserController;
-use App\Http\Controllers\Api\V1\LoyaltyPointController;
 use App\Http\Controllers\Api\V1\MapApiController;
 use App\Http\Controllers\Api\V1\MatrixController;
 use App\Http\Controllers\Api\V1\NotificationController;
@@ -142,11 +141,8 @@ Route::group(['middleware'=>'localization'], function () {
             Route::delete('remove', [WishlistController::class, 'removeFromWishlist']);
         });
 
-        Route::post('transfer-point-to-wallet', [CustomerWalletController::class, 'transferLoyaltyPointToWallet']);
         Route::get('wallet-transactions', [CustomerWalletController::class, 'walletTransactions']);
         Route::get('bonus/list', [CustomerWalletController::class, 'walletBonusList']);
-
-        Route::get('loyalty-point-transactions', [LoyaltyPointController::class, 'pointTransactions']);
 
         Route::get('member-status', [CustomerController::class, 'memberStatus']);
         Route::post('transfer-points', [CustomerController::class, 'transferPoints']);

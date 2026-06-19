@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\CentralLogics\CustomerLogic;
 use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
 use App\Model\BusinessSetting;
@@ -21,38 +20,6 @@ class CustomerWalletController extends Controller
         private User $user,
         private WalletBonus $walletBonus
     ){}
-
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function transferLoyaltyPointToWallet(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'point' => 'required|min:1',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
-        }
-
-        $user = $this->user->find($request->user()->id);
-        if($request['point'] > $user->loyalty_point) {
-            return response()->json(['errors' => [['code' => 'wallet', 'message' => translate('Your point in not sufficient!')]]], 401);
-        }
-
-        $minimumPoint = $this->businessSetting->where(['key' => 'loyalty_point_minimum_point'])->first()->value;
-        if ($request['point'] < $minimumPoint ) {
-            return response()->json(['errors' => [['code' => 'wallet', 'message' => translate('Your point in not sufficient!')]]], 401);
-        }
-
-        $loyaltyPointExchangeRate = $this->businessSetting->where(['key' => 'loyalty_point_exchange_rate'])->first()->value;
-        $loyaltyAmount = $request['point']/$loyaltyPointExchangeRate;
-
-        CustomerLogic::loyalty_point_wallet_transfer_transaction($user->id, $request['point'], $loyaltyAmount);
-
-        return response()->json(['message' => translate('transfer success')], 200);
-    }
 
     /**
      * @param Request $request
@@ -78,10 +45,7 @@ class CustomerWalletController extends Controller
             ->when(isset($transactionType) && ($transactionType == 'add_fund'), function ($query) {
                 return $query->where('transaction_type', 'add_fund');
             })
-            ->when(isset($transactionType) && ($transactionType == 'loyalty_point_to_wallet'), function ($query) {
-                return $query->where('transaction_type', 'loyalty_point_to_wallet');
-            })
-            ->when(isset($transactionType) && ($transactionType == 'referral_order_place'), function ($query) {
+                    ->when(isset($transactionType) && ($transactionType == 'referral_order_place'), function ($query) {
                 return $query->where('transaction_type', 'referral_order_place');
             })
             ->when(isset($transactionType) && ($transactionType == 'add_fund_bonus'), function ($query) {

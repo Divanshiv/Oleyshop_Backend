@@ -201,7 +201,7 @@ class DeliverymanController extends Controller
             $value = $this->dynamic_key_replaced_message(message: $message, type: 'order', order: $order);
 
             if ($order->is_guest == 0){
-                if($order->user_id) CustomerLogic::create_loyalty_point_transaction($order->user_id, $order->id, $order->order_amount, 'order_place');
+                // Loyalty point removed
 
                 $user = $this->user->find($order->user_id);
                 $isFirstOrder = $this->order->where(['user_id' => $user->id, 'order_status' => 'delivered'])->count('id');
