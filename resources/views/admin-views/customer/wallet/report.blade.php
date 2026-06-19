@@ -52,18 +52,21 @@
                                     <option value="add_fund_by_admin"
                                         {{ isset($transactionStatus) && $transactionStatus == 'add_fund_by_admin' ? 'selected' : '' }}>
                                         {{ translate('add_fund_by_admin') }}</option>
+                                    <option value="add_fund"
+                                        {{ isset($transactionStatus) && $transactionStatus == 'add_fund' ? 'selected' : '' }}>
+                                        {{ translate('add_fund') }}</option>
+                                    <option value="add_fund_bonus"
+                                        {{ isset($transactionStatus) && $transactionStatus == 'add_fund_bonus' ? 'selected' : '' }}>
+                                        {{ translate('add_fund_bonus') }}</option>
                                     <option value="referral_order_place"
-                                        {{ isset($transactionStatus) && $transactionStatus == 'referral_order_place	' ? 'selected' : '' }}>
+                                        {{ isset($transactionStatus) && $transactionStatus == 'referral_order_place' ? 'selected' : '' }}>
                                         {{ translate('referral_order_place') }}</option>
                                     <option value="order_place"
                                         {{ isset($transactionStatus) && $transactionStatus == 'order_place' ? 'selected' : '' }}>
                                         {{ translate('order_place') }}</option>
-                                    <option value="point_value"
-                                        {{ isset($transactionStatus) && $transactionStatus == 'point_value' ? 'selected' : '' }}>
-                                        {{ translate('Point Value') }}</option>
-                                    <option value="member_activation"
-                                        {{ isset($transactionStatus) && $transactionStatus == 'member_activation' ? 'selected' : '' }}>
-                                        {{ translate('Member Activation') }}</option>
+                                    <option value="refund"
+                                        {{ isset($transactionStatus) && $transactionStatus == 'refund' ? 'selected' : '' }}>
+                                        {{ translate('refund') }}</option>
                                 </select>
                             </div>
                         </div>

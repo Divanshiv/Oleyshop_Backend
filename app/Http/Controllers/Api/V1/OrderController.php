@@ -302,22 +302,13 @@ class OrderController extends Controller
             DB::commit();
 
             // Point value flow:
-            // - Active member: all point_value credited directly to wallet
-            // - Non-member: accumulated to total_point_value, excess after milestone goes to wallet
+            // Points ALWAYS accumulate as points (total_point_value), never convert to wallet money.
+            // Non-members additionally get activation check when they hit the milestone.
             if ($or['user_id'] && $or['point_value'] > 0) {
                 $orderUser = User::find($or['user_id']);
                 if ($orderUser) {
-                    if ($orderUser->is_member) {
-                        // Member: all points go directly to wallet
-                        CustomerLogic::create_wallet_transaction(
-                            $orderUser->id,
-                            (int)$or['point_value'],
-                            'point_value',
-                            'Point value credit from order #' . $orderId
-                        );
-                    } else {
-                        // Non-member: accumulate to total_point_value, check activation
-                        $orderUser->increment('total_point_value', (int)$or['point_value']);
+                    $orderUser->increment('total_point_value', (int)$or['point_value']);
+                    if (!$orderUser->is_member) {
                         CustomerLogic::processMemberActivation($orderUser->id);
                     }
                 }

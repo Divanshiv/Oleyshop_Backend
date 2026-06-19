@@ -34,7 +34,7 @@ class CustomerLogic{
         $debit = 0.0;
         $credit = 0.0;
 
-        if(in_array($transaction_type, ['add_fund_by_admin','add_fund','referrer', 'add_fund_bonus', 'refund', 'member_activation', 'point_transfer', 'point_value']))
+        if(in_array($transaction_type, ['add_fund_by_admin','add_fund','referrer', 'add_fund_bonus', 'refund']))
         {
             $credit = $amount;
         }
@@ -185,17 +185,8 @@ class CustomerLogic{
 
         DB::transaction(function () use ($user, $milestone, $excess) {
             $user->is_member = true;
-            $user->total_point_value = 0;
+            $user->total_point_value = max(0, $excess); // Keep excess as points, never convert to money
             $user->save();
-
-            if ($excess > 0 && BusinessSetting::where('key', 'wallet_status')->first()->value == 1) {
-                self::create_wallet_transaction(
-                    $user->id,
-                    $excess,
-                    'member_activation',
-                    'Member activation excess points'
-                );
-            }
         });
 
         // After user becomes an active member, check if their parent qualifies for incentives
@@ -208,7 +199,7 @@ class CustomerLogic{
             'activated' => true,
             'excess' => $excess,
             'message' => $excess > 0
-                ? "Member activated, {$excess} excess points credited to wallet"
+                ? "Member activated, {$excess} excess points remaining in point balance"
                 : 'Member activated successfully'
         ];
     }
@@ -246,15 +237,7 @@ class CustomerLogic{
 
             $toUser->total_point_value += $amount;
             $toUser->save();
-
-            if (BusinessSetting::where('key', 'wallet_status')->first()->value == 1) {
-                self::create_wallet_transaction(
-                    $fromUser->id,
-                    $amount,
-                    'point_transfer',
-                    "Points transferred to user {$toUser->id}"
-                );
-            }
+            // Points stay as points — no wallet money transaction
         });
 
         // Check if receiver should be activated
