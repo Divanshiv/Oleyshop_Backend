@@ -74,7 +74,7 @@ class CustomerAuthController extends Controller
             'phone' => $request->phone,
             'password' => bcrypt($request->password),
             'temporary_token' => $temporaryToken,
-            'referral_code' => Helpers::generate_referer_code(),
+            'referral_code' => Helpers::generate_referer_code($request->f_name),
             'referred_by' => $refer_user->id ?? null,
         ]);
 
@@ -786,7 +786,7 @@ class CustomerAuthController extends Controller
         $user->temporary_token = $temporaryToken;
         $user->language_code = $request->header('X-localization') ?? 'en';
         $user->is_phone_verified = 1;
-        $user->referral_code = Helpers::generate_referer_code();
+        $user->referral_code = Helpers::generate_referer_code($firstName);
         $user->referred_by = $refer_user->id ?? null;
         $user->login_medium = 'OTP';
         $user->save();
@@ -984,7 +984,7 @@ class CustomerAuthController extends Controller
         $user->temporary_token = $temporaryToken;
         $user->language_code = $request->header('X-localization') ?? 'en';
         $user->email_verified_at = now();
-        $user->referral_code = Helpers::generate_referer_code();
+        $user->referral_code = Helpers::generate_referer_code($firstName);
         $user->referred_by = $refer_user->id ?? null;
         $user->login_medium = 'social';
         $user->save();

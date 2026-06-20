@@ -102,15 +102,6 @@
         .matrix-child-wrapper:not(:first-child):not(:last-child)::before {
             left: 50%;
         }
-        .matrix-empty-slot {
-            border: 2px dashed #e7eaf3;
-            border-radius: 8px;
-            padding: 12px 20px;
-            min-width: 150px;
-            text-align: center;
-            color: #c0c8d4;
-            font-size: 12px;
-        }
         .team-summary {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -171,7 +162,7 @@
                 <div class="info-label">{{ translate('Position') }}</div>
             </div>
             <div class="info-card">
-                <div class="info-value">{{ is_countable($children) ? count($children) : 0 }} / 4</div>
+                <div class="info-value">{{ is_countable($children) ? count($children) : 0 }}</div>
                 <div class="info-label">{{ translate('Direct Referrals') }}</div>
             </div>
         </div>

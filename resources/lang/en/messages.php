@@ -3310,4 +3310,9 @@
   'Change Customer Password' => 'Change Customer Password',
   'total_point_value' => 'Point Value',
   'point_value_balance' => 'Point Value Balance',
+  'Total Team Members' => 'Total Team Members',
+  'Back to Matrix' => 'Back to Matrix',
+  'Non-Member' => 'Non-Member',
+  'Matrix Tree' => 'Matrix Tree',
+  'please_select_a_customer_before_submitting' => 'Please select a customer before submitting',
 );

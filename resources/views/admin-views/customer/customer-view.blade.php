@@ -20,7 +20,7 @@
         <div class="d-print-none pb-2">
             <div class="row align-items-center">
                 <div class="col-auto mb-2 mb-sm-0">
-                    <h1 class="page-header-title">{{translate('customer')}} {{translate('id')}} #{{$customer['id']}}</h1>
+                    <h1 class="page-header-title">{{ $customer['f_name'] . ' ' . $customer['l_name'] }}</h1>
                     <span class="d-block">
                         <i class="tio-date-range"></i> {{translate('joined_at')}} : {{date('d M Y '.config('timeformat'),strtotime($customer['created_at']))}}
                     </span>

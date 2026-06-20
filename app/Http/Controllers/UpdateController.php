@@ -346,7 +346,7 @@ class UpdateController extends Controller
         //user referral code
         $users = User::whereNull('referral_code')->get();
         foreach ($users as $user) {
-            $user->referral_code = Helpers::generate_referer_code();
+            $user->referral_code = Helpers::generate_referer_code($user->f_name);
             $user->save();
         }
 

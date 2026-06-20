@@ -46,13 +46,6 @@
                         </select>
                     </div>
                 </form>
-
-                <div class="d-flex align-items-center gap-3">
-                    <span class="text-muted small">
-                        <i class="tio-info-outined"></i>
-                        {{ translate('Max 4 direct referrals per user') }}
-                    </span>
-                </div>
             </div>
 
             <div class="table-responsive datatable-custom">

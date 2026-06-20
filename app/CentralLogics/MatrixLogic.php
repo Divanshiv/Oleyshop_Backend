@@ -31,10 +31,6 @@ class MatrixLogic
         );
 
         $childrenCount = MatrixMember::where('parent_id', $parentId)->count();
-        if ($childrenCount >= 4) {
-            return 'Parent already has maximum 4 direct referrals';
-        }
-
         $position = $childrenCount + 1;
         $depth = $parentMember->depth + 1;
         $path = $parentMember->path . '/' . $userId;
@@ -71,9 +67,12 @@ class MatrixLogic
     }
 
     /**
-     * Check and award incentives for a user based on team size.
-     * Incentives are only awarded if all 4 direct referrals are active members.
-     * Walks through all levels and awards any that haven't been given yet.
+     * Check and award incentives for a user based on recursive matrix qualification.
+     *
+     * Level 1 (Bronze):     4 active direct members
+     * Level 2 (Silver):     Level 1 + 4+ directs each at Level 1+
+     * Level 3 (Gold):       Level 2 + 4+ directs each at Level 2+
+     * (and so on recursively)
      */
     public static function checkAndAwardIncentives($userId): void
     {
@@ -82,25 +81,39 @@ class MatrixLogic
             return;
         }
 
-        // Require all 4 direct referrals to be active members before awarding incentives
+        // Require at least 4 active direct referrals
         $directChildren = MatrixMember::where('parent_id', $userId)->get();
         if ($directChildren->count() < 4) {
-            return; // Not all 4 positions filled yet
+            return;
         }
         foreach ($directChildren as $child) {
             $childUser = User::find($child->user_id);
             if (!$childUser || !$childUser->is_member) {
-                return; // A direct referral is not an active member
+                return;
             }
         }
 
-        $teamCount = $user->total_team_members;
         $levels = MatrixLevel::active()->orderBy('level')->get();
         $awardedLevel = 0;
         $awardedPosition = null;
 
         foreach ($levels as $level) {
-            if ($teamCount >= $level->required_members) {
+            if ($level->level == 1) {
+                $qualifies = true; // Level 1: just need 4 active directs
+            } else {
+                // Level N: need 4+ directs who have reached Level N-1
+                $prevLevel = $level->level - 1;
+                $directsAtPrevLevel = 0;
+                foreach ($directChildren as $child) {
+                    $childUser = User::find($child->user_id);
+                    if ($childUser && $childUser->matrix_level >= $prevLevel) {
+                        $directsAtPrevLevel++;
+                    }
+                }
+                $qualifies = ($directsAtPrevLevel >= 4);
+            }
+
+            if ($qualifies) {
                 $existingLog = MatrixIncentiveLog::where('user_id', $userId)
                     ->where('matrix_level_id', $level->id)
                     ->first();
@@ -112,7 +125,7 @@ class MatrixLogic
                         'level' => $level->level,
                         'position_name' => $level->position_name,
                         'amount' => $level->incentive_amount,
-                        'total_team_members' => $teamCount,
+                        'total_team_members' => $user->total_team_members,
                         'status' => 'credited',
                     ]);
 
@@ -128,6 +141,8 @@ class MatrixLogic
                     $awardedLevel = $level->level;
                     $awardedPosition = $level->position_name;
                 }
+            } else {
+                break; // Can't skip levels — stop checking higher ones
             }
         }
 
@@ -167,6 +182,8 @@ class MatrixLogic
             'is_member' => $member->user ? (bool)$member->user->is_member : false,
             'position' => $member->position,
             'depth' => $member->depth,
+            'matrix_level' => $member->user ? $member->user->matrix_level : 0,
+            'matrix_position' => $member->user ? $member->user->matrix_position : '—',
         ];
 
         if ($currentDepth < $maxDepth) {
@@ -204,7 +221,7 @@ class MatrixLogic
             ? MatrixLevel::active()->where('level', $user->matrix_level)->first()
             : null;
 
-        // Check direct referrals activation status
+        // Check direct referrals activation and their levels
         $directChildren = MatrixMember::where('parent_id', $userId)->get();
         $directReferrals = $directChildren->map(function ($child) {
             $cu = User::find($child->user_id);
@@ -213,10 +230,29 @@ class MatrixLogic
                 'position' => $child->position,
                 'is_member' => $cu ? (bool)$cu->is_member : false,
                 'name' => $cu ? ($cu->f_name . ' ' . $cu->l_name) : 'Unknown',
+                'matrix_level' => $cu ? $cu->matrix_level : 0,
+                'matrix_position' => $cu ? $cu->matrix_position : null,
             ];
         })->toArray();
-        $allDirectActive = count($directReferrals) === 4 && collect($directReferrals)->every(fn($r) => $r['is_member']);
-        $incentivesEligible = count($directReferrals) === 4 && $allDirectActive;
+
+        // Recursive qualification: for next level, count directs at required previous level
+        $nextLevelNum = $user->matrix_level + 1;
+        $nextLevelRecursive = MatrixLevel::active()
+            ->where('level', $nextLevelNum)
+            ->first();
+        $requiredDirectsWithPrevLevel = $nextLevelNum <= 1 ? count($directReferrals) : 0;
+        $directsReadyForNext = 0;
+        if ($nextLevelRecursive && $nextLevelNum > 1) {
+            $prevRequired = $nextLevelNum - 1;
+            $directsReadyForNext = count(array_filter($directReferrals, fn($r) => $r['matrix_level'] >= $prevRequired));
+            $requiredDirectsWithPrevLevel = 4;
+        } elseif ($nextLevelRecursive && $nextLevelNum == 1) {
+            $directsReadyForNext = count(array_filter($directReferrals, fn($r) => $r['is_member']));
+            $requiredDirectsWithPrevLevel = 4;
+        }
+
+        $allDirectActive = count($directReferrals) >= 4 && collect($directReferrals)->every(fn($r) => $r['is_member']);
+        $incentivesEligible = $allDirectActive && ($user->matrix_level >= 1 || count($directReferrals) >= 4);
 
         return [
             'user_id' => $user->id,
@@ -235,12 +271,17 @@ class MatrixLogic
                 'required_members' => $currentLevel->required_members,
                 'incentive_amount' => $currentLevel->incentive_amount,
             ] : null,
-            'next_level' => $nextLevel ? [
-                'level' => $nextLevel->level,
-                'position_name' => $nextLevel->position_name,
-                'required_members' => $nextLevel->required_members,
-                'incentive_amount' => $nextLevel->incentive_amount,
-                'remaining_members' => $nextLevel->required_members - $teamCount,
+            'next_level' => $nextLevelRecursive ? [
+                'level' => $nextLevelRecursive->level,
+                'position_name' => $nextLevelRecursive->position_name,
+                'required_members' => $nextLevelRecursive->required_members,
+                'incentive_amount' => $nextLevelRecursive->incentive_amount,
+                'remaining_members' => $nextLevelRecursive->required_members - $teamCount,
+                'condition' => $nextLevelNum > 1
+                    ? "Need {$requiredDirectsWithPrevLevel}+ directs at Level {$prevRequired} (" . ($currentLevel->position_name ?? 'N/A') . "+)"
+                    : "Need {$requiredDirectsWithPrevLevel}+ active direct referrals",
+                'directs_ready' => $directsReadyForNext,
+                'directs_required' => $requiredDirectsWithPrevLevel,
             ] : null,
         ];
     }
@@ -269,7 +310,8 @@ class MatrixLogic
     }
 
     /**
-     * Recalculate team counts for a user and all ancestors.
+     * Recalculate team counts for a user and all ancestors,
+     * and check incentive eligibility for each.
      */
     public static function recalculateTeamCounts($userId): void
     {
@@ -283,6 +325,8 @@ class MatrixLogic
             User::where('id', $currentId)->update([
                 'total_team_members' => $count,
             ]);
+
+            self::checkAndAwardIncentives($currentId);
 
             $member = MatrixMember::where('user_id', $currentId)->first();
             $currentId = $member ? $member->parent_id : null;

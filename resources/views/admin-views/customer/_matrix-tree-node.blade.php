@@ -9,6 +9,11 @@
        style="text-decoration: none; color: inherit; display: block;">
         <div class="node-name">{{ $node['name'] }}</div>
         <div class="node-meta">{{ $node['phone'] }}</div>
+        @if(!empty($node['matrix_position']) && $node['matrix_position'] !== '—')
+            <div>
+                <span class="node-badge level-badge">{{ $node['matrix_position'] }}</span>
+            </div>
+        @endif
         @if(!empty($node['position']))
             <div>
                 <span class="node-badge pos-badge">{{ translate('Pos') }} {{ $node['position'] }}</span>
@@ -31,16 +36,6 @@
                     @include('admin-views.customer._matrix-tree-node', ['node' => $child, 'isRoot' => false])
                 </div>
             @endforeach
-
-            {{-- Fill empty slots up to 4 positions --}}
-            @for($i = count($node['children']) + 1; $i <= 4; $i++)
-                <div class="matrix-child-wrapper">
-                    <div class="matrix-empty-slot">
-                        <i class="tio-add"></i>
-                        <div>{{ translate('Empty Slot') }} {{ $i }}</div>
-                    </div>
-                </div>
-            @endfor
         </div>
     @endif
 </div>

@@ -1038,13 +1038,29 @@ class Helpers
         return true;
     }
 
-    public static function generate_referer_code()
+    public static function generate_referer_code(?string $name = null): string
     {
-        $ref_code = Str::random('20');
-        if (User::where('referral_code', '=', $ref_code)->exists()) {
-            return generate_referer_code();
+        $chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        $charsLen = strlen($chars);
+
+        $code = '';
+
+        // Use first 4 chars of name as human-readable prefix
+        if ($name && strlen($name) > 0) {
+            $cleaned = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $name));
+            $code .= substr($cleaned, 0, 4);
         }
-        return $ref_code;
+
+        // Fill remaining to 8 with random readable chars
+        $remaining = 8 - strlen($code);
+        for ($i = 0; $i < $remaining; $i++) {
+            $code .= $chars[random_int(0, $charsLen - 1)];
+        }
+
+        if (User::where('referral_code', '=', $code)->exists()) {
+            return self::generate_referer_code($name);
+        }
+        return $code;
     }
 
     public static function gen_mpdf($view, $file_prefix, $file_postfix)
