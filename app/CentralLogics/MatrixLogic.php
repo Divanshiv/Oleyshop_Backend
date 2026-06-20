@@ -212,10 +212,6 @@ class MatrixLogic
         }
 
         $teamCount = $user->total_team_members;
-        $nextLevel = MatrixLevel::active()
-            ->where('required_members', '>', $teamCount)
-            ->orderBy('level')
-            ->first();
 
         $currentLevel = $user->matrix_level > 0
             ? MatrixLevel::active()->where('level', $user->matrix_level)->first()
@@ -251,6 +247,23 @@ class MatrixLogic
             $requiredDirectsWithPrevLevel = 4;
         }
 
+        // Calculate remaining_members: number of new members needed at the deepest level
+        // For level N, the deepest required depth = N, needing 4^N = required_members
+        $remainingMembers = 0;
+        if ($nextLevelRecursive) {
+            $member = MatrixMember::where('user_id', $userId)->first();
+            if ($member) {
+                $deepestDepth = $nextLevelNum; // e.g., Gold (lv3) needs members at depth 3
+                $existingAtDepth = MatrixMember::where(function ($q) use ($member, $userId) {
+                    $q->where('path', 'like', $member->path . '/%')
+                      ->orWhere('path', 'like', '%/' . $userId . '/%');
+                })->where('depth', $deepestDepth)
+                  ->where('user_id', '!=', $userId)
+                  ->count();
+                $remainingMembers = max(0, $nextLevelRecursive->required_members - $existingAtDepth);
+            }
+        }
+
         $allDirectActive = count($directReferrals) >= 4 && collect($directReferrals)->every(fn($r) => $r['is_member']);
         $incentivesEligible = $allDirectActive && ($user->matrix_level >= 1 || count($directReferrals) >= 4);
 
@@ -274,9 +287,8 @@ class MatrixLogic
             'next_level' => $nextLevelRecursive ? [
                 'level' => $nextLevelRecursive->level,
                 'position_name' => $nextLevelRecursive->position_name,
-                'required_members' => $nextLevelRecursive->required_members,
                 'incentive_amount' => $nextLevelRecursive->incentive_amount,
-                'remaining_members' => $nextLevelRecursive->required_members - $teamCount,
+                'remaining_members' => $remainingMembers,
                 'condition' => $nextLevelNum > 1
                     ? "Need {$requiredDirectsWithPrevLevel}+ directs at Level {$prevRequired} (" . ($currentLevel->position_name ?? 'N/A') . "+)"
                     : "Need {$requiredDirectsWithPrevLevel}+ active direct referrals",
