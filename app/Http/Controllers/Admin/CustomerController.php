@@ -46,7 +46,7 @@ class CustomerController extends Controller
         if($request->has('search'))
         {
             $key = explode(' ', $request['search']);
-            $customers = $this->user->with(['orders'])->
+            $customers = $this->user->withTrashed()->with(['orders'])->
                     where(function ($q) use ($key) {
                         foreach ($key as $value) {
                             $q->orWhere('f_name', 'like', "%{$value}%")
@@ -58,7 +58,7 @@ class CustomerController extends Controller
             $queryParam['search'] = $request->search;
 ;
         }else{
-            $customers = $this->user->with(['orders']);
+            $customers = $this->user->withTrashed()->with(['orders']);
         }
 
         $customers = $customers->latest()->paginate($perPage)->appends($queryParam);
@@ -76,7 +76,7 @@ class CustomerController extends Controller
         $perPage = (int) $request->query('per_page', Helpers::getPagination());
 
         $queryParam = ['per_page' => $perPage];
-        $customer = $this->user->find($id);
+        $customer = $this->user->withTrashed()->find($id);
 
         if (isset($customer)) {
             $previousCustomer = $this->user
@@ -177,10 +177,17 @@ class CustomerController extends Controller
      */
     public function delete(Request $request): RedirectResponse
     {
-        $customer = $this->user->find($request->id);
+        $customer = $this->user->withTrashed()->find($request->id);
 
         if (!$customer) {
             Toastr::error(translate('Customer not found!'));
+            return back();
+        }
+
+        // If already soft-deleted, permanently delete the record
+        if ($customer->trashed()) {
+            $customer->forceDelete();
+            Toastr::success(translate('Customer permanently removed!'));
             return back();
         }
 
@@ -242,6 +249,10 @@ class CustomerController extends Controller
     public function status(Request $request): RedirectResponse
     {
         $user = $this->user->find($request->id);
+        if (!$user) {
+            Toastr::error(translate('Customer not found!'));
+            return back();
+        }
         $user->is_block = $request->status;
         $user->save();
 
