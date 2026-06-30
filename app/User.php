@@ -9,6 +9,7 @@ use App\Model\MatrixMember;
 use App\Model\Order;
 use App\Model\SearchedKeywordUser;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +17,7 @@ use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -82,7 +83,8 @@ class User extends Authenticatable
     static function total_order_amount($customer_id)
     {
         $total_amount = 0;
-        $customer = User::where(['id' => $customer_id])->first();
+        $customer = User::withTrashed()->where(['id' => $customer_id])->first();
+        if (!$customer) return 0;
         foreach ($customer->orders as $order){
             $total_amount += $order->order_amount;
         }
