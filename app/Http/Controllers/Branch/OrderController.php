@@ -164,7 +164,7 @@ class OrderController extends Controller
             return back();
         }
 
-        if ($request->order_status == 'delivered' && $order['transaction_reference'] == null && !in_array($order['payment_method'],['cash_on_delivery','wallet', 'offline_payment'])) {
+        if ($request->order_status == 'delivered' && $order['transaction_reference'] == null && !in_array($order['payment_method'],['cash_on_delivery','wallet_payment', 'offline_payment'])) {
             Toastr::warning(translate('add_your_payment_reference_first'));
             return back();
         }
@@ -268,7 +268,16 @@ class OrderController extends Controller
         if ($request->order_status == 'delivered') {
             if ($order->is_guest == 0){
                 if($order->user_id) {
-                    // Loyalty point removed
+                    // Award points only when order is delivered AND paid
+                    if ($order->point_value > 0) {
+                        $orderUser = $this->user->find($order->user_id);
+                        if ($orderUser) {
+                            $orderUser->increment('total_point_value', (int)$order->point_value);
+                            if (!$orderUser->is_member) {
+                                CustomerLogic::processMemberActivation($orderUser->id);
+                            }
+                        }
+                    }
                 }
 
                 $user = $this->user->find($order->user_id);

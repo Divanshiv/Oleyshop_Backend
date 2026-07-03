@@ -201,7 +201,7 @@ class DeliverymanController extends Controller
             $value = $this->dynamic_key_replaced_message(message: $message, type: 'order', order: $order);
 
             if ($order->is_guest == 0){
-                // Loyalty point removed
+                // Points are NOT awarded here — only through Admin/Branch panel on "delivered" status
 
                 $user = $this->user->find($order->user_id);
                 $isFirstOrder = $this->order->where(['user_id' => $user->id, 'order_status' => 'delivered'])->count('id');

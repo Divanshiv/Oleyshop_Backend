@@ -301,18 +301,9 @@ class OrderController extends Controller
 
             DB::commit();
 
-            // Point value flow:
-            // Points ALWAYS accumulate as points (total_point_value), never convert to wallet money.
-            // Non-members additionally get activation check when they hit the milestone.
-            if ($or['user_id'] && $or['point_value'] > 0) {
-                $orderUser = User::find($or['user_id']);
-                if ($orderUser) {
-                    $orderUser->increment('total_point_value', (int)$or['point_value']);
-                    if (!$orderUser->is_member) {
-                        CustomerLogic::processMemberActivation($orderUser->id);
-                    }
-                }
-            }
+            // Note: Point value is NOT awarded here on placement anymore.
+            // Points are awarded only when order is "delivered" AND "paid" — see Admin/OrderController::status(),
+            // Branch/OrderController::status(), and DeliverymanController::updateOrderStatus().
 
             if ((bool)auth('api')->user()) {
                 $customerFcmToken = auth('api')->user()->cm_firebase_token;
