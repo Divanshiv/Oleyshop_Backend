@@ -5,13 +5,16 @@ namespace App\Http\Controllers\Admin;
 use App\CentralLogics\Helpers;
 use App\CentralLogics\MatrixLogic;
 use App\Http\Controllers\Controller;
+use App\Model\BusinessSetting;
 use App\Model\MatrixIncentiveLog;
 use App\Model\MatrixLevel;
 use App\Model\MatrixMember;
 use App\User;
+use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class MatrixManagementController extends Controller
@@ -91,5 +94,33 @@ class MatrixManagementController extends Controller
         $levels = $this->matrixLevel->active()->orderBy('level')->get();
 
         return view('admin-views.customer.matrix-tree', compact('user', 'tree', 'depth', 'status', 'children', 'levels', 'matrixMember'));
+    }
+
+    public function settings(Request $request): View|Factory|Application|RedirectResponse
+    {
+        if ($request->isMethod('POST')) {
+            $request->validate(['company_root_id' => 'required|integer|exists:users,id']);
+
+            // Read old root BEFORE saving the new value
+            $oldRootId = (int)(Helpers::get_business_settings('company_root_id') ?? 1);
+            $newRootId = (int)$request->company_root_id;
+
+            BusinessSetting::updateOrCreate(
+                ['key' => 'company_root_id'],
+                ['value' => $newRootId]
+            );
+
+            // Auto-migrate all matrix members from old root to new root
+            MatrixLogic::migrateCompanyRoot($oldRootId, $newRootId);
+
+            Toastr::success(translate('Company root user updated successfully'));
+            return redirect()->route('admin.customer.matrix.settings');
+        }
+
+        $companyRootId = Helpers::get_business_settings('company_root_id') ?? 1;
+        $companyRoot = User::find($companyRootId);
+        $users = User::where('is_phone_verified', 1)->orderBy('f_name')->get();
+
+        return view('admin-views.customer.matrix-settings', compact('companyRootId', 'companyRoot', 'users'));
     }
 }

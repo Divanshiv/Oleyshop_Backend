@@ -488,6 +488,7 @@ Route::group(['as' => 'admin.'], function () {
             Route::group(['prefix' => 'matrix', 'as' => 'matrix.'], function () {
                 Route::get('/', [MatrixManagementController::class, 'index'])->name('index');
                 Route::get('tree/{id}', [MatrixManagementController::class, 'tree'])->name('tree');
+                Route::match(['get', 'post'], 'settings', [MatrixManagementController::class, 'settings'])->name('settings');
             });
         });
 
