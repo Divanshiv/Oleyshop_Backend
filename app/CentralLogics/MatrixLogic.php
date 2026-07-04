@@ -10,11 +10,62 @@ use App\User;
 class MatrixLogic
 {
     /**
-     * Add a new member to the matrix tree under a parent user.
+     * Maximum children per parent in the matrix tree (4×4 rule).
+     */
+    const MAX_CHILDREN = 4;
+
+    /**
+     * Find the first node in the tree (BFS) that has fewer than MAX_CHILDREN.
+     * Used for auto-placing un-referred members under the company root.
+     */
+    private static function findAvailableParent(int $rootId): int
+    {
+        $queue = [$rootId];
+        $visited = [];
+
+        while (!empty($queue)) {
+            $currentId = array_shift($queue);
+
+            if (in_array($currentId, $visited)) {
+                continue;
+            }
+            $visited[] = $currentId;
+
+            $childrenCount = MatrixMember::where('parent_id', $currentId)->count();
+            if ($childrenCount < self::MAX_CHILDREN) {
+                return $currentId;
+            }
+
+            $children = MatrixMember::where('parent_id', $currentId)
+                ->orderBy('position')
+                ->pluck('user_id');
+
+            foreach ($children as $childId) {
+                $queue[] = $childId;
+            }
+        }
+
+        return $rootId;
+    }
+
+    /**
+     * Add a new member to the matrix tree.
+     *
+     * When $parentId is null (no referral), auto-place the member in the first
+     * available slot under the company root using the 4×4 matrix rule.
+     *
+     * When $parentId is provided, place directly under that parent as a child.
+     *
      * Returns MatrixMember on success, or error string on failure.
      */
-    public static function addMemberToMatrix($userId, $parentId): MatrixMember|string
+    public static function addMemberToMatrix($userId, $parentId = null): MatrixMember|string
     {
+        if (!$parentId) {
+            // No referral — auto-place in the company tree (4×4 rule)
+            $rootId = Helpers::get_business_settings('company_root_id') ?? 1;
+            $parentId = self::findAvailableParent($rootId);
+        }
+
         $parent = User::find($parentId);
         if (!$parent) {
             return 'Parent user not found';
@@ -194,7 +245,13 @@ class MatrixLogic
 
             $node['children'] = [];
             foreach ($children as $child) {
-                $node['children'][] = self::buildTree($child, $maxDepth, $currentDepth + 1);
+                $childNode = self::buildTree($child, $maxDepth, $currentDepth + 1);
+                // Embed parent info so every card can display "sponsored by"
+                $childNode['parent_id'] = $member->user_id;
+                $childNode['parent_name'] = $member->user ? ($member->user->f_name . ' ' . $member->user->l_name) : null;
+                $childNode['parent_phone'] = $member->user ? $member->user->phone : null;
+                $childNode['parent_matrix_position'] = $member->user ? $member->user->matrix_position : null;
+                $node['children'][] = $childNode;
             }
         }
 
@@ -319,6 +376,73 @@ class MatrixLogic
                 'joined_at' => $member->created_at,
             ];
         })->toArray();
+    }
+
+    /**
+     * Migrate all matrix members from the old company root to a new one.
+     * Called automatically when admin changes the company_root_id setting.
+     *
+     * @param int $oldRootId The previous company_root_id (before saving the new one)
+     * @param int $newRootId The new company_root_id
+     */
+    public static function migrateCompanyRoot(int $oldRootId, int $newRootId): void
+    {
+        if ($oldRootId === $newRootId) {
+            return;
+        }
+
+        $oldRootMember = MatrixMember::where('user_id', $oldRootId)->first();
+        $oldRootPath = $oldRootMember ? $oldRootMember->path : (string)$oldRootId;
+
+        // Ensure new root has a MatrixMember record (create if fresh user)
+        $newRootMember = MatrixMember::firstOrCreate(
+            ['user_id' => $newRootId],
+            ['parent_id' => null, 'position' => null, 'depth' => 0, 'path' => (string)$newRootId]
+        );
+        $newRootPath = $newRootMember->path;
+
+        // Collect descendant IDs BEFORE any path changes (to avoid query misses)
+        $descendantIds = MatrixMember::where('path', 'like', $oldRootPath . '/%')
+            ->where('user_id', '!=', $oldRootId)
+            ->where('user_id', '!=', $newRootId)
+            ->pluck('id');
+
+        // Migrate direct children of old root (excluding new root if it was a child)
+        $directChildren = MatrixMember::where('parent_id', $oldRootId)
+            ->where('user_id', '!=', $newRootId)
+            ->orderBy('position')
+            ->get();
+
+        foreach ($directChildren as $child) {
+            $child->parent_id = $newRootId;
+            $relativePath = substr($child->path, strlen($oldRootPath) + 1);
+            $child->path = $newRootPath . '/' . $relativePath;
+            $child->save();
+        }
+
+        // Migrate all deeper descendants
+        if ($descendantIds->isNotEmpty()) {
+            $descendants = MatrixMember::whereIn('id', $descendantIds)->get();
+            foreach ($descendants as $descendant) {
+                $relativePath = substr($descendant->path, strlen($oldRootPath) + 1);
+                $descendant->path = $newRootPath . '/' . $relativePath;
+                $descendant->save();
+            }
+        }
+
+        // Recalculate team counts for the new root (walks up ancestors too)
+        self::recalculateTeamCounts($newRootId);
+
+        // Reset old root's team count
+        User::where('id', $oldRootId)->update(['total_team_members' => 0]);
+
+        // Clean up old root's MatrixMember if it was a pure root node
+        if ($oldRootMember && $oldRootMember->parent_id === null) {
+            $remainingChildren = MatrixMember::where('parent_id', $oldRootId)->count();
+            if ($remainingChildren === 0) {
+                $oldRootMember->delete();
+            }
+        }
     }
 
     /**
