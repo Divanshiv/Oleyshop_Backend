@@ -46,6 +46,11 @@
                         </select>
                     </div>
                 </form>
+
+                <a class="btn btn-outline-primary btn-sm" href="{{ route('admin.customer.matrix.settings') }}">
+                    <i class="tio-settings"></i>
+                    {{ translate('Settings') }}
+                </a>
             </div>
 
             <div class="table-responsive datatable-custom">
