@@ -119,7 +119,7 @@ class MatrixManagementController extends Controller
 
         $companyRootId = Helpers::get_business_settings('company_root_id') ?? 1;
         $companyRoot = User::find($companyRootId);
-        $users = User::where('is_phone_verified', 1)->orderBy('f_name')->get();
+        $users = User::orderBy('f_name')->get();
 
         return view('admin-views.customer.matrix-settings', compact('companyRootId', 'companyRoot', 'users'));
     }
