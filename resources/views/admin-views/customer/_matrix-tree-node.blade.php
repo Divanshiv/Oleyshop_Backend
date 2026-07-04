@@ -9,6 +9,9 @@
        style="text-decoration: none; color: inherit; display: block;">
         <div class="node-name">{{ $node['name'] }}</div>
         <div class="node-meta">{{ $node['phone'] }}</div>
+        <div class="node-meta" style="font-size:10px; color:#6b7a8d;">
+            {{ translate('ID') }}: {{ $node['id'] }} | {{ translate('Ref') }}: {{ $node['referral_code'] }}
+        </div>
         @if(!empty($node['matrix_position']) && $node['matrix_position'] !== '—')
             <div>
                 <span class="node-badge level-badge">{{ $node['matrix_position'] }}</span>

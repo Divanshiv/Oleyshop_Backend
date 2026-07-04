@@ -230,6 +230,7 @@ class MatrixLogic
             'id' => $member->user_id,
             'name' => $member->user ? ($member->user->f_name . ' ' . $member->user->l_name) : 'Unknown',
             'phone' => $member->user ? $member->user->phone : '',
+            'referral_code' => $member->user ? ($member->user->referral_code ?? '—') : '—',
             'is_member' => $member->user ? (bool)$member->user->is_member : false,
             'position' => $member->position,
             'depth' => $member->depth,
