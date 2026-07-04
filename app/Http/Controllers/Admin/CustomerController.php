@@ -30,7 +30,9 @@ class CustomerController extends Controller
         private User $user,
         private Order $order,
         private Newsletter $newsletter,
-        private Conversation $conversation
+        private Conversation $conversation,
+        private \App\Model\MatrixMember $matrixMember,
+        private \App\Model\MatrixLevel $matrixLevel
     ){}
 
     /**
@@ -110,7 +112,27 @@ class CustomerController extends Controller
 
             $orders = $orders->latest()->paginate($perPage)->appends($queryParam);
 
-            return view('admin-views.customer.customer-view', compact('customer', 'orders', 'search', 'perPage', 'previousCustomer', 'nextCustomer'));
+            // Matrix / referral info
+            $matrixMember = $this->matrixMember->where('user_id', $id)->first();
+
+            $parentUser = null;
+            if ($customer->referred_by) {
+                $parentUser = $this->user->find($customer->referred_by);
+            } elseif ($matrixMember && $matrixMember->parent_id) {
+                $parentUser = $this->user->find($matrixMember->parent_id);
+            }
+            $directReferrals = $matrixMember
+                ? $this->matrixMember->with(['user'])
+                    ->where('parent_id', $id)
+                    ->orderBy('position')
+                    ->get()
+                : collect();
+            $levels = $this->matrixLevel->active()->orderBy('level')->get();
+
+            return view('admin-views.customer.customer-view', compact(
+                'customer', 'orders', 'search', 'perPage', 'previousCustomer', 'nextCustomer',
+                'parentUser', 'matrixMember', 'directReferrals', 'levels'
+            ));
         }
 
         Toastr::error(translate('Customer not found!'));

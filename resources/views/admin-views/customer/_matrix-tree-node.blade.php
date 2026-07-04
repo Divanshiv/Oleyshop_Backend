@@ -19,6 +19,11 @@
                 <span class="node-badge pos-badge">{{ translate('Pos') }} {{ $node['position'] }}</span>
             </div>
         @endif
+        @if(!$isRoot && !empty($node['parent_name']))
+            <div class="node-meta" style="margin-top: 2px;">
+                {{ translate('Under') }}: {{ $node['parent_name'] }} @if(!empty($node['parent_matrix_position'])){{ $node['parent_matrix_position'] }}@endif
+            </div>
+        @endif
         <div class="node-meta" style="margin-top: 2px;">
             {{ translate('Depth') }}: {{ $node['depth'] }}
             @if(!empty($node['is_member']) && $node['is_member'])

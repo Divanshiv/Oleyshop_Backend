@@ -224,6 +224,82 @@
                             @endforeach
 
                         </div>
+
+                        {{-- Matrix / Referral Info --}}
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5><i class="tio-node-multiple-outlined mr-1"></i>{{ translate('matrix_info') }}</h5>
+                            <a class="btn btn-sm btn-outline-primary"
+                               href="{{ route('admin.customer.matrix.tree', [$customer['id']]) }}"
+                               title="{{ translate('View Matrix Tree') }}">
+                                <i class="tio-node-multiple-outlined"></i>
+                            </a>
+                        </div>
+                        <ul class="list-unstyled list-unstyled-py-2" style="font-size: 13px;">
+                            {{-- Under (Parent) --}}
+                            @if($parentUser)
+                                <li>
+                                    {{ translate('Under') }}:
+                                    <a href="{{ route('admin.customer.view', $parentUser->id) }}" class="font-weight-bold" style="color: inherit;">
+                                        {{ $parentUser['f_name'] . ' ' . $parentUser['l_name'] }}
+                                    </a>
+                                    @if($parentUser->matrix_position)
+                                        {{ $parentUser->matrix_position }}
+                                    @endif
+                                </li>
+                            @endif
+
+                            {{-- Matrix Level & Position --}}
+                            <li>
+                                <span class="text-muted">{{ translate('Matrix Level') }}:</span>
+                                @if($customer->matrix_level > 0)
+                                    Lv.{{ $customer->matrix_level }} — {{ $customer->matrix_position }}
+                                @else
+                                    <span class="text-muted">{{ translate('None') }}</span>
+                                @endif
+                            </li>
+
+                            {{-- Team Members --}}
+                            <li>
+                                <span class="text-muted">{{ translate('Team Members') }}:</span>
+                                <strong>{{ $customer->total_team_members ?? 0 }}</strong>
+                            </li>
+
+                            {{-- Direct Referrals --}}
+                            <li>
+                                <span class="text-muted">{{ translate('Direct Referrals') }}:</span>
+                                <strong>{{ count($directReferrals) }}</strong>
+                            </li>
+                        </ul>
+
+                        @if(count($directReferrals) > 0)
+                            <div class="mt-1">
+                                <small class="text-muted text-uppercase">{{ translate('Direct Team') }}:</small>
+                                <div class="mt-1" style="max-height: 150px; overflow-y: auto;">
+                                    @foreach($directReferrals as $child)
+                                        <a href="{{ route('admin.customer.view', $child->user_id) }}"
+                                           class="d-flex align-items-center py-1 px-2 rounded"
+                                           style="text-decoration: none; color: inherit; gap: 6px; transition: background 0.15s;"
+                                           onmouseover="this.style.background='#f8f9fa'"
+                                           onmouseout="this.style.background='transparent'">
+                                            <span class="badge badge-secondary badge-pill" style="font-size:9px; min-width:18px;">
+                                                {{ $child->position }}
+                                            </span>
+                                            <span style="font-size:13px;">
+                                                {{ $child->user ? $child->user['f_name'] . ' ' . $child->user['l_name'] : '#' . $child->user_id }}
+                                            </span>
+                                            @if($child->user && $child->user->matrix_position)
+                                                <span class="badge badge-soft-info ml-auto" style="font-size:8px;">
+                                                    {{ $child->user->matrix_position }}
+                                                </span>
+                                            @endif
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                    </div>
                 @endif
                 </div>
             </div>
